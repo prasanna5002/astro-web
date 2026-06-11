@@ -793,7 +793,7 @@
                 </svg>
                 <span class="lang-ta">கிரக பலன்கள்</span><span class="lang-sep"> / </span><span class="lang-en">Planetary Placement Readings</span>
               </h3>
-              <div id="placements-list-container" style="margin-top: 1rem; max-height: 600px; overflow-y: auto; padding-right: 0.5rem;">
+              <div id="placements-list-container" style="margin-top: 1rem;">
                 <!-- Dynamic readings go here -->
               </div>
             </div>
@@ -842,6 +842,33 @@
             <span class="lang-ta">ஒட்டுமொத்த விரிவான அறிக்கை</span><span class="lang-sep"> / </span><span class="lang-en">Comprehensive Overall Report</span>
           </h2>
           <div class="details-panel">
+            <!-- சிறப்பு யோகங்கள் block -->
+            <div class="detail-block" style="margin-bottom: 1.5rem;">
+              <h3 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                <span class="lang-ta">சிறப்பு யோகங்கள் & தோஷங்கள்</span>
+              </h3>
+              <div id="report-yogas">
+                <!-- Dynamic yogas go here -->
+              </div>
+            </div>
+
+            <!-- நடப்புத் தசா block -->
+            <div class="detail-block" style="margin-bottom: 1.5rem;">
+              <h3 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span class="lang-ta">நடப்புத் தசா பலன்</span>
+              </h3>
+              <p class="detail-desc reading-text" id="report-dasa-desc">
+                <!-- Dynamic prediction goes here -->
+              </p>
+            </div>
+
             <!-- Career block -->
             <div class="detail-block" style="margin-bottom: 1.5rem;">
               <h3 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
@@ -851,7 +878,7 @@
                 </svg>
                 <span class="lang-ta">வேலை / தொழில்</span><span class="lang-sep"> / </span><span class="lang-en">Job & Career</span>
               </h3>
-              <p class="detail-desc" id="report-career-desc" style="line-height: 1.6; font-size: 0.9rem; color: var(--text-secondary);">
+              <p class="detail-desc reading-text" id="report-career-desc">
                 <!-- Dynamic prediction goes here -->
               </p>
             </div>
@@ -865,7 +892,7 @@
                 </svg>
                 <span class="lang-ta">கல்வி</span><span class="lang-sep"> / </span><span class="lang-en">Education</span>
               </h3>
-              <p class="detail-desc" id="report-education-desc" style="line-height: 1.6; font-size: 0.9rem; color: var(--text-secondary);">
+              <p class="detail-desc reading-text" id="report-education-desc">
                 <!-- Dynamic prediction goes here -->
               </p>
             </div>
@@ -878,7 +905,7 @@
                 </svg>
                 <span class="lang-ta">திருமணம் / திருமண வாழ்க்கை</span><span class="lang-sep"> / </span><span class="lang-en">Marriage & Married Life</span>
               </h3>
-              <p class="detail-desc" id="report-marriage-desc" style="line-height: 1.6; font-size: 0.9rem; color: var(--text-secondary);">
+              <p class="detail-desc reading-text" id="report-marriage-desc">
                 <!-- Dynamic prediction goes here -->
               </p>
             </div>
@@ -891,7 +918,49 @@
                 </svg>
                 <span class="lang-ta">ஆரோக்கியம்</span><span class="lang-sep"> / </span><span class="lang-en">Health</span>
               </h3>
-              <p class="detail-desc" id="report-health-desc" style="line-height: 1.6; font-size: 0.9rem; color: var(--text-secondary);">
+              <p class="detail-desc reading-text" id="report-health-desc">
+                <!-- Dynamic prediction goes here -->
+              </p>
+            </div>
+
+            <!-- தனம் & செல்வம் block -->
+            <div class="detail-block" style="margin-bottom: 1.5rem;">
+              <h3 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="1" x2="12" y2="23"/>
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+                <span class="lang-ta">தனம் & செல்வ நிலை</span>
+              </h3>
+              <p class="detail-desc reading-text" id="report-wealth-desc">
+                <!-- Dynamic prediction goes here -->
+              </p>
+            </div>
+
+            <!-- வெளிநாடு & ஆன்மீகம் block -->
+            <div class="detail-block" style="margin-bottom: 1.5rem;">
+              <h3 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="2" y1="12" x2="22" y2="12"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+                <span class="lang-ta">வெளிநாட்டு யோகம் & ஆன்மீகம்</span>
+              </h3>
+              <p class="detail-desc reading-text" id="report-foreign-desc">
+                <!-- Dynamic prediction goes here -->
+              </p>
+            </div>
+
+            <!-- சந்திர ராசி பொதுப் பலன் block -->
+            <div class="detail-block" style="margin-bottom: 1.5rem;">
+              <h3 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+                <span class="lang-ta">சந்திர ராசிப் பொதுப் பலன்</span>
+              </h3>
+              <p class="detail-desc reading-text" id="report-rasi-desc">
                 <!-- Dynamic prediction goes here -->
               </p>
             </div>

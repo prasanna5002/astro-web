@@ -1387,6 +1387,7 @@ function renderDasaBhuktis() {
   
   const startDasaIndex = nakIdx % 9;
   const YEAR_MS = 365.25 * 24 * 60 * 60 * 1000;
+  const nowMs = Date.now();
 
   let currentMs = birthDate.getTime();
   let currentDasaIdx = startDasaIndex;
@@ -1408,15 +1409,18 @@ function renderDasaBhuktis() {
     const startDateStr = new Date(currentMs).toLocaleDateString("ta-IN", { year: 'numeric', month: 'short', day: 'numeric' });
     const endDateStr = new Date(endMs).toLocaleDateString("ta-IN", { year: 'numeric', month: 'short', day: 'numeric' });
     
+    const isCurrentDasa = nowMs >= currentMs && nowMs < endMs;
+
     const dasaEl = document.createElement("div");
-    dasaEl.className = "dasa-item";
+    dasaEl.className = "dasa-item" + (isCurrentDasa ? " dasa-current expanded" : "");
     dasaEl.id = `dasa-${i}`;
-    
+
     dasaEl.innerHTML = `
       <div class="dasa-header" onclick="toggleDasa(${i})">
-        <span class="dasa-name">
+        <span class="dasa-name" style="display: flex; align-items: center; gap: 0.6rem;">
           <span class="dasa-badge lang-ta">${nameTa} தசா</span>
           <span class="dasa-badge lang-en">${nameEn} Dasa</span>
+          ${isCurrentDasa ? '<span class="current-tag">நடப்புத் தசா</span>' : ''}
         </span>
         <span style="display: flex; align-items: center; gap: 1rem;">
           <span class="dasa-dates">${startDateStr} - ${endDateStr}</span>
@@ -1459,11 +1463,13 @@ function renderDasaBhuktis() {
       const bDispStartMs = Math.max(bhuktiMs, currentMs);
       const bStartStr = new Date(bDispStartMs).toLocaleDateString("ta-IN", { year: 'numeric', month: 'short' });
       const bEndStr = new Date(bEndMs).toLocaleDateString("ta-IN", { year: 'numeric', month: 'short' });
-      
+
+      const isCurrentBhukti = nowMs >= bDispStartMs && nowMs < bEndMs;
+
       const bEl = document.createElement("div");
-      bEl.className = "bhukti-item";
+      bEl.className = "bhukti-item" + (isCurrentBhukti ? " bhukti-current" : "");
       bEl.innerHTML = `
-        <div class="bhukti-name"><span class="lang-ta">${bNameTa}</span><span class="lang-sep"> / </span><span class="lang-en">${bNameEn}</span></div>
+        <div class="bhukti-name"><span class="lang-ta">${bNameTa}</span><span class="lang-sep"> / </span><span class="lang-en">${bNameEn}</span>${isCurrentBhukti ? ' <span class="current-tag">நடப்பு</span>' : ''}</div>
         <div class="bhukti-dates">${bStartStr} - ${bEndStr}</div>
       `;
       bhuktiGrid.appendChild(bEl);
@@ -1939,7 +1945,7 @@ function renderAspectsAndReadings() {
         <span class="detail-key" style="color: var(--primary-gold); font-size: 0.95rem;">
           <span class="lang-ta">${rasi.nameTa} - கிரக சேர்க்கை</span><span class="lang-sep"> / </span><span class="lang-en">${rasi.nameEn} - Conjunction</span>
         </span>
-        <span class="detail-val lang-ta" style="font-size: 0.88rem; color: var(--text-primary);">
+        <span class="detail-val lang-ta reading-text">
           ${namesTa} ஒருமித்து அமைந்துள்ளனர்.
         </span>
         <span class="detail-val lang-en" style="font-size: 0.85rem; color: var(--text-secondary); font-style: italic;">
@@ -2042,7 +2048,7 @@ function renderAspectsAndReadings() {
           <span class="detail-key" style="font-size: 0.9rem; font-weight: 600;">
             <span class="lang-ta">${planetNamesTa[p]} &rarr; ${aspectLabel.ta}</span><span class="lang-sep"> / </span><span class="lang-en">${planetNamesEn[p]} &rarr; ${aspectLabel.en}</span>
           </span>
-          <span class="detail-val lang-ta" style="font-size: 0.85rem; color: var(--text-primary);">
+          <span class="detail-val lang-ta reading-text">
             ${RASIS[pSign].nameTa}-ல் உள்ள ${planetNamesTa[p]}, ${rasi.nameTa}-ல் இருக்கும் ${targetNamesTa}-யைப் பார்க்கிறார். (${natureTa})
           </span>
           <span class="detail-val lang-en" style="font-size: 0.8rem; color: var(--text-secondary); font-style: italic;">
@@ -2130,11 +2136,8 @@ function renderAspectsAndReadings() {
       </div>
       
       <div>
-        <p class="lang-ta" style="font-size: 0.88rem; color: var(--text-primary); margin-bottom: 0.25rem; line-height: 1.5;">
+        <p class="lang-ta reading-text" style="margin-bottom: 0.25rem;">
           <strong>பலன் விளக்கம்:</strong> ${signReadingTa}
-        </p>
-        <p class="lang-en" style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; font-style: italic; margin: 0;">
-          <strong>Astrological Analysis:</strong> ${signReadingEn}
         </p>
       </div>
     `;
@@ -2188,10 +2191,10 @@ function renderHouseReadings() {
       <h4 style="color: var(--primary-gold); font-size: 1rem; margin-bottom: 0.5rem;">
         ${h}-ம் வீடு: ${rasi.nameTa}
       </h4>
-      <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+      <p class="reading-meta" style="margin-bottom: 0.5rem;">
         <strong>காரகத்துவம்:</strong> ${houseMeaningsTa[h-1].split(' (')[0]}
       </p>
-      <p style="font-size: 0.88rem; color: var(--text-primary); margin-bottom: 0.25rem;">
+      <p class="reading-text" style="margin-bottom: 0.25rem;">
         <strong>பலன்:</strong> ${readingTa}
       </p>
     `;
@@ -2548,6 +2551,270 @@ function getDetailedCareerReportEn(lordKey, lordHouse, state, occupants) {
   }
   return text;
 }
+
+// ==========================================
+// சிறப்பு யோகங்கள், தசா பலன் & கூடுதல் பலன்கள்
+// ==========================================
+
+const EXALTATION_SIGNS = { sun: 0, moon: 1, mars: 9, mercury: 5, jupiter: 3, venus: 11, saturn: 6 };
+const DEBILITATION_SIGNS = { sun: 6, moon: 7, mars: 3, mercury: 11, jupiter: 9, venus: 5, saturn: 0 };
+const OWN_SIGNS = { sun: [4], moon: [3], mars: [0, 7], mercury: [2, 5], jupiter: [8, 11], venus: [1, 6], saturn: [9, 10] };
+const SIGN_LORDS = ["mars", "venus", "mercury", "moon", "sun", "mercury", "venus", "mars", "jupiter", "saturn", "saturn", "jupiter"];
+
+function getPlanetState(p, signIdx) {
+  if (EXALTATION_SIGNS[p] === signIdx) return "exalted";
+  if (DEBILITATION_SIGNS[p] === signIdx) return "debilitated";
+  if (OWN_SIGNS[p] && OWN_SIGNS[p].includes(signIdx)) return "own";
+  return "general";
+}
+
+const STATE_NAMES_TA = { exalted: "உச்ச நிலையில்", debilitated: "நீச நிலையில்", own: "ஆட்சி நிலையில்", general: "சம நிலையில்" };
+
+// சிறப்பு யோகங்கள் / தோஷங்கள் கண்டறிதல்
+function detectYogas(birthData) {
+  const yogas = [];
+  const lagnaSign = Math.floor(birthData.lagna / 30) % 12;
+  const planets = ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu"];
+  const sign = {};
+  planets.forEach(p => { sign[p] = Math.floor(birthData[p] / 30) % 12; });
+  const houseOf = p => (sign[p] - lagnaSign + 12) % 12 + 1;
+
+  // 1. கஜகேசரி யோகம் — சந்திரனுக்குக் கேந்திரத்தில் குரு
+  const moonToJup = (sign.jupiter - sign.moon + 12) % 12;
+  if ([0, 3, 6, 9].includes(moonToJup)) {
+    yogas.push({ name: "கஜகேசரி யோகம்", type: "subam", desc: "சந்திரனுக்குக் கேந்திர ஸ்தானத்தில் குரு அமைந்து கஜகேசரி யோகம் உண்டாகியுள்ளது. இது புகழ், கல்வி ஞானம், சமூகத்தில் உயர்ந்த அந்தஸ்து மற்றும் நீடித்த நற்பெயரைத் தரும் உன்னத யோகமாகும். வாழ்வின் இக்கட்டான தருணங்களிலும் தெய்வ அருளும் பெரியோர் ஆதரவும் உங்களைக் காத்து நிற்கும்." });
+  }
+
+  // 2. புதாதித்ய யோகம் — சூரியன் + புதன் சேர்க்கை
+  if (sign.sun === sign.mercury) {
+    yogas.push({ name: "புதாதித்ய யோகம்", type: "subam", desc: "சூரியனும் புதனும் இணைந்து புதாதித்ய யோகம் அமைந்துள்ளது. கூர்மையான அறிவு, கணித மேதைமை, நிர்வாகத் திறன் மற்றும் கல்வியில் சிறப்பான தேர்ச்சியை இது வழங்கும். அரசு அல்லது நிர்வாகப் பொறுப்புகளில் பெயர் பெறுவீர்கள்." });
+  }
+
+  // 3. சந்திர மங்கள யோகம்
+  if (sign.moon === sign.mars) {
+    yogas.push({ name: "சந்திர மங்கள யோகம்", type: "subam", desc: "சந்திரனும் செவ்வாயும் இணைந்து சந்திர மங்கள யோகம் உண்டாகியுள்ளது. சுய முயற்சியால் தன வரவு, தொழில் முனைப்பு மற்றும் துணிச்சலான முடிவுகளால் முன்னேற்றம் காண்பீர்கள். எனினும் பண விஷயங்களில் அவசர முடிவுகளைத் தவிர்ப்பது நலம்." });
+  }
+
+  // 4. குரு மங்கள யோகம்
+  if (sign.jupiter === sign.mars) {
+    yogas.push({ name: "குரு மங்கள யோகம்", type: "subam", desc: "குருவும் செவ்வாயும் இணைந்த குரு மங்கள யோகம் தர்மத்தோடு கூடிய வீரத்தையும், நேர்மையான உழைப்பால் உயரும் ஆற்றலையும் தரும். தொழில்நுட்பம், சட்டம், நிர்வாகம் போன்ற துறைகளில் சிறந்து விளங்குவீர்கள்." });
+  }
+
+  // 5. பஞ்ச மகாபுருஷ யோகங்கள் — ஆட்சி/உச்சக் கிரகம் லக்னக் கேந்திரத்தில்
+  const mahapurusha = {
+    mars: { name: "ருசக யோகம்", desc: "செவ்வாய் வலுவுடன் கேந்திரத்தில் அமைந்து ருசக யோகம் உண்டாகியுள்ளது. வீரம், தைரியம், உறுதியான உடல்வாகு மற்றும் படை/காவல்/நிர்வாகத் துறைகளில் தலைமைப் பொறுப்பை இது அளிக்கும்." },
+    mercury: { name: "பத்திர யோகம்", desc: "புதன் வலுவுடன் கேந்திரத்தில் அமைந்து பத்திர யோகம் உண்டாகியுள்ளது. சிறந்த பேச்சாற்றல், எழுத்தாற்றல், வியாபார நுணுக்கம் மற்றும் அறிவுசார் துறைகளில் பெரும் புகழை இது தரும்." },
+    jupiter: { name: "ஹம்ச யோகம்", desc: "குரு வலுவுடன் கேந்திரத்தில் அமைந்து ஹம்ச யோகம் உண்டாகியுள்ளது. ஞானம், நற்குணம், ஆன்மீக உயர்வு மற்றும் சமூகத்தில் குருஸ்தான மரியாதையை இது வழங்கும்." },
+    venus: { name: "மாளவ்ய யோகம்", desc: "சுக்கிரன் வலுவுடன் கேந்திரத்தில் அமைந்து மாளவ்ய யோகம் உண்டாகியுள்ளது. அழகு, கலைத் திறன், சொகுசு வாழ்க்கை, வாகன யோகம் மற்றும் இல்லற இன்பத்தை இது அளிக்கும்." },
+    saturn: { name: "சச யோகம்", desc: "சனி வலுவுடன் கேந்திரத்தில் அமைந்து சச யோகம் உண்டாகியுள்ளது. கடின உழைப்பால் படிப்படியாக உயர்ந்து, ஆட்சி அதிகாரம், நிலபுலன்கள் மற்றும் நீடித்த செல்வாக்கைப் பெறுவீர்கள்." }
+  };
+  Object.keys(mahapurusha).forEach(p => {
+    const st = getPlanetState(p, sign[p]);
+    if ((st === "exalted" || st === "own") && [1, 4, 7, 10].includes(houseOf(p))) {
+      yogas.push({ name: mahapurusha[p].name + " (பஞ்ச மகாபுருஷ யோகம்)", type: "subam", desc: mahapurusha[p].desc });
+    }
+  });
+
+  // 6. தர்மகர்மாதிபதி ராஜயோகம் — 9 & 10 அதிபதிகள் சேர்க்கை
+  const lord9 = SIGN_LORDS[(lagnaSign + 8) % 12];
+  const lord10 = SIGN_LORDS[(lagnaSign + 9) % 12];
+  if (lord9 !== lord10 && sign[lord9] === sign[lord10]) {
+    yogas.push({ name: "தர்மகர்மாதிபதி ராஜயோகம்", type: "subam", desc: "பாக்கியாதிபதியும் (9) கர்மாதிபதியும் (10) ஒரே ராசியில் இணைந்து உயர்ந்த ராஜயோகம் அமைந்துள்ளது. தர்ம வழியில் நின்று தொழிலில் பெரும் உயர்வும், அதிர்ஷ்டமும், சமூக அங்கீகாரமும் பெறுவீர்கள். இது ஜாதகத்தின் மிக வலுவான யோகங்களில் ஒன்றாகும்." });
+  }
+
+  // 7. தன யோகம் — 2 & 11 அதிபதிகள் சேர்க்கை/பரிவர்த்தனை
+  const lord2 = SIGN_LORDS[(lagnaSign + 1) % 12];
+  const lord11 = SIGN_LORDS[(lagnaSign + 10) % 12];
+  if (lord2 !== lord11) {
+    const conj = sign[lord2] === sign[lord11];
+    const exchange = sign[lord2] === (lagnaSign + 10) % 12 && sign[lord11] === (lagnaSign + 1) % 12;
+    if (conj || exchange) {
+      yogas.push({ name: "தன யோகம்", type: "subam", desc: "தனாதிபதியும் (2) லாபாதிபதியும் (11) வலுவாகத் தொடர்பு கொண்டு தன யோகம் அமைந்துள்ளது. பல்வேறு வழிகளில் தன வரவு, சேமிப்பு வளர்ச்சி மற்றும் குடும்பச் செழிப்பை இது உறுதி செய்கிறது." });
+    }
+  }
+
+  // 8. விபரீத ராஜயோகம் — 6/8/12 அதிபதி 6/8/12-ல்
+  const dusthanas = [6, 8, 12];
+  for (const h of dusthanas) {
+    const lord = SIGN_LORDS[(lagnaSign + h - 1) % 12];
+    const lh = (sign[lord] - lagnaSign + 12) % 12 + 1;
+    if (dusthanas.includes(lh) && lh !== h) {
+      yogas.push({ name: "விபரீத ராஜயோகம்", type: "subam", desc: `${h}-ம் வீட்டின் அதிபதி ${lh}-ம் வீட்டில் அமர்ந்து விபரீத ராஜயோகம் உண்டாகியுள்ளது. எதிர்பாராத சூழல்களே உங்களுக்கு வெற்றியாக மாறும்; போட்டிகள், சவால்கள் மற்றும் நெருக்கடிகளிலிருந்து திடீர் உயர்வு பெறுவீர்கள்.` });
+      break;
+    }
+  }
+
+  // 9. செவ்வாய் தோஷம் (லக்னத்திலிருந்து)
+  const marsHouse = houseOf("mars");
+  if ([1, 2, 4, 7, 8, 12].includes(marsHouse)) {
+    yogas.push({ name: "செவ்வாய் தோஷம் (மாங்கல்ய பரிசீலனை)", type: "dosham", desc: `செவ்வாய் லக்னத்திலிருந்து ${marsHouse}-ம் வீட்டில் அமர்ந்திருப்பதால் பொதுவாகச் செவ்வாய் தோஷம் எனக் கருதப்படும் அமைப்பு உள்ளது. திருமணப் பொருத்தம் பார்க்கும்போது இதைக் கவனத்தில் கொள்வது நலம். குருவின் பார்வை, செவ்வாயின் ஆட்சி/உச்ச நிலை அல்லது இரு ஜாதகங்களிலும் சம தோஷம் இருந்தால் இது பெருமளவு மட்டுப்படும் என்பது மரபு விதி.` });
+  }
+
+  // 10. கேமத்ரும தோஷம் — சந்திரனின் 2 & 12-ல் கிரகங்கள் இன்மை
+  const supportPlanets = ["mars", "mercury", "jupiter", "venus", "saturn"];
+  const m2 = (sign.moon + 1) % 12, m12 = (sign.moon + 11) % 12;
+  const hasSupport = supportPlanets.some(p => sign[p] === m2 || sign[p] === m12 || sign[p] === sign.moon);
+  if (!hasSupport) {
+    yogas.push({ name: "கேமத்ரும தோஷம்", type: "dosham", desc: "சந்திரனுக்கு இருபுறமும் துணை கிரகங்கள் இல்லாத கேமத்ரும அமைப்பு காணப்படுகிறது. இது அவ்வப்போது மனத் தளர்ச்சியோ தனிமை உணர்வோ தரலாம். எனினும் சந்திரனுக்கு அல்லது லக்னத்திற்குக் கேந்திரத்தில் கிரகங்கள் இருந்தால் இத்தோஷம் முறிந்துவிடும்; சிவ வழிபாடும் தாயை மதித்து நடத்தலும் சிறந்த பரிகாரம்." });
+  }
+
+  return yogas;
+}
+
+// விம்சோத்தரி — நடப்புத் தசா/புக்தி கணித்தல்
+function computeCurrentDasaBhukti(moonSid, birthMs, nowMs) {
+  const nakSize = 360 / 27;
+  const nakIdx = Math.floor(moonSid / nakSize) % 27;
+  const elapsedFraction = (moonSid % nakSize) / nakSize;
+  const dasaOrder = ["ketu", "venus", "sun", "moon", "mars", "rahu", "jupiter", "saturn", "mercury"];
+  const dasaYears = { ketu: 7, venus: 20, sun: 6, moon: 10, mars: 7, rahu: 18, jupiter: 16, saturn: 19, mercury: 17 };
+  const YEAR_MS = 365.25 * 24 * 60 * 60 * 1000;
+
+  let idx = nakIdx % 9;
+  let t = birthMs - elapsedFraction * dasaYears[dasaOrder[idx]] * YEAR_MS;
+
+  for (let k = 0; k < 18; k++) {
+    const lord = dasaOrder[idx];
+    const end = t + dasaYears[lord] * YEAR_MS;
+    if (nowMs < end) {
+      let bt = t, bIdx = idx;
+      for (let j = 0; j < 9; j++) {
+        const bLord = dasaOrder[bIdx];
+        const bEnd = bt + (dasaYears[lord] * dasaYears[bLord] / 120) * YEAR_MS;
+        if (nowMs < bEnd) {
+          return { dasaLord: lord, bhuktiLord: bLord, dasaStart: t, dasaEnd: end, bhuktiStart: bt, bhuktiEnd: bEnd };
+        }
+        bt = bEnd;
+        bIdx = (bIdx + 1) % 9;
+      }
+    }
+    t = end;
+    idx = (idx + 1) % 9;
+  }
+  return null;
+}
+
+// நடப்புத் தசா பலன் உரை
+function getCurrentDasaReportTa(birthData, birthMs) {
+  const cur = computeCurrentDasaBhukti(birthData.moon, birthMs, Date.now());
+  if (!cur) return "விம்சோத்தரி தசா சுழற்சி (120 ஆண்டுகள்) நிறைவடைந்துள்ளது.";
+
+  const lagnaSign = Math.floor(birthData.lagna / 30) % 12;
+  const dLord = cur.dasaLord, bLord = cur.bhuktiLord;
+  const dSign = Math.floor(birthData[dLord] / 30) % 12;
+  const dHouse = (dSign - lagnaSign + 12) % 12 + 1;
+  const dState = getPlanetState(dLord, dSign);
+  const fmt = ms => new Date(ms).toLocaleDateString("ta-IN", { year: 'numeric', month: 'short', day: 'numeric' });
+
+  const houseEffects = [
+    "சுய முன்னேற்றம், ஆளுமை வளர்ச்சி மற்றும் புதிய தொடக்கங்களுக்கு உகந்த காலமாக அமையும். உடல்நலத்தில் கவனம் வைத்து உழைத்தால் தனித்துவமான அடையாளம் கிடைக்கும்",
+    "குடும்பச் செழிப்பு, தன வரவு மற்றும் சேமிப்பு வளர்ச்சிக்கு ஏற்ற காலம். பேச்சால் காரியம் சாதிக்கும் வாய்ப்புகள் அதிகரிக்கும்",
+    "தைரியமான முயற்சிகள், குறுகிய பயணங்கள், எழுத்து/ஊடகம் சார்ந்த வெற்றிகள் மற்றும் சகோதர ஒத்துழைப்பு கூடும் காலம்",
+    "வீடு, மனை, வாகனம் போன்ற சொத்து சேர்க்கைக்கும், தாய்வழி நன்மைகளுக்கும், மன நிம்மதிக்கும் உகந்த காலம்",
+    "புத்திர பாக்கியம், கல்வி வெற்றி, படைப்பாற்றல் மலர்ச்சி மற்றும் பூர்வ புண்ணியப் பலன்கள் கைகூடும் காலம்",
+    "போட்டிகள் மற்றும் கடன்களை வெல்லும் காலம்; உடல்நலத்திலும் வழக்கு விவகாரங்களிலும் விழிப்புடன் இருந்தால் வெற்றி நிச்சயம்",
+    "திருமணம், கூட்டுத் தொழில் மற்றும் ஒப்பந்தங்கள் கைகூடும் காலம்; உறவுகளில் விட்டுக்கொடுப்பு வெற்றியைத் தரும்",
+    "திடீர் மாற்றங்கள் நிகழக்கூடிய காலம்; ஆராய்ச்சி, பரம்பரைச் சொத்து விவகாரங்களில் முன்னேற்றமும், ஆரோக்கியத்தில் எச்சரிக்கையும் தேவை",
+    "அதிர்ஷ்டம், தெய்வ அருள், நீண்ட தூரப் பயணங்கள் மற்றும் ஆன்மீக உயர்வு கைகூடும் சிறந்த காலம்",
+    "தொழில் உயர்வு, பதவி உயர்வு, பொது அங்கீகாரம் மற்றும் புதிய பொறுப்புகள் தேடி வரும் காலம்",
+    "லாபங்கள் பெருகும் காலம்; ஆசைகள் நிறைவேறுவதோடு நட்பு வட்டாரத்தால் நன்மைகள் உண்டாகும்",
+    "வெளிநாட்டு வாய்ப்புகள், ஆன்மீகத் தேடல் மற்றும் சுபச் செலவுகள் கூடும் காலம்; வீண் விரயங்களைக் கட்டுப்படுத்துவது நலம்"
+  ];
+
+  const stateEffects = {
+    exalted: "தசாநாதன் உச்ச பலத்துடன் இருப்பதால் இக்காலப் பலன்கள் முழுமையாகவும் மிகச் சிறப்பாகவும் கிடைக்கும்.",
+    own: "தசாநாதன் ஆட்சி பலத்துடன் இருப்பதால் நிலையான, உறுதியான நற்பலன்கள் உண்டாகும்.",
+    debilitated: "தசாநாதன் நீச நிலையில் இருப்பதால் பலன்களில் சில தாமதங்களும் தடைகளும் ஏற்படலாம்; உரிய கிரக வழிபாடும் நிதானமும் இவற்றைக் கடக்க உதவும்.",
+    general: "தசாநாதன் சம நிலையில் இருப்பதால் உழைப்பிற்கேற்ற நியாயமான பலன்கள் படிப்படியாகக் கிடைக்கும்."
+  };
+
+  return `தற்போது உங்களுக்கு ${planetNamesTa[dLord]} மகா தசை (${fmt(cur.dasaStart)} முதல் ${fmt(cur.dasaEnd)} வரை) நடைபெற்று வருகிறது. இதனுள் ${planetNamesTa[bLord]} புக்தி ${fmt(cur.bhuktiStart)} முதல் ${fmt(cur.bhuktiEnd)} வரை இயங்குகிறது. தசாநாதன் ${planetNamesTa[dLord]} உங்கள் ஜாதகத்தில் ${RASIS[dSign].nameTa} ராசியில், லக்னத்திற்கு ${dHouse}-ம் வீட்டில் ${STATE_NAMES_TA[dState]} அமர்ந்துள்ளார். எனவே இக்காலம் ${houseEffects[dHouse - 1]}. ${stateEffects[dState]} புக்திநாதன் ${planetNamesTa[bLord]} இக்காலப் பலன்களுக்கு மேலும் நுணுக்கமான திருப்பங்களைச் சேர்ப்பார்; ${planetNamesTa[bLord]}க்கு உரிய நாளில் (வாரத்தில்) தொடங்கும் முக்கிய காரியங்கள் சிறப்பான பலனைத் தரும்.`;
+}
+
+// தனம் & செல்வ நிலை உரை
+function getWealthReportTa(birthData) {
+  const lagnaSign = Math.floor(birthData.lagna / 30) % 12;
+  const lord2 = SIGN_LORDS[(lagnaSign + 1) % 12];
+  const lord11 = SIGN_LORDS[(lagnaSign + 10) % 12];
+  const s2 = Math.floor(birthData[lord2] / 30) % 12;
+  const s11 = Math.floor(birthData[lord11] / 30) % 12;
+  const h2 = (s2 - lagnaSign + 12) % 12 + 1;
+  const h11 = (s11 - lagnaSign + 12) % 12 + 1;
+  const st2 = getPlanetState(lord2, s2);
+  const st11 = getPlanetState(lord11, s11);
+
+  let text = `உங்கள் ஜாதகத்தில் தனஸ்தானமான 2-ம் வீட்டின் அதிபதி ${planetNamesTa[lord2]}; அவர் ${h2}-ம் வீட்டில் ${STATE_NAMES_TA[st2]} உள்ளார். லாபஸ்தானமான 11-ம் வீட்டின் அதிபதி ${planetNamesTa[lord11]}; அவர் ${h11}-ம் வீட்டில் ${STATE_NAMES_TA[st11]} உள்ளார். `;
+
+  const goodHouses = [1, 2, 4, 5, 9, 10, 11];
+  const score = (goodHouses.includes(h2) ? 1 : 0) + (goodHouses.includes(h11) ? 1 : 0)
+    + (st2 === "exalted" || st2 === "own" ? 1 : 0) + (st11 === "exalted" || st11 === "own" ? 1 : 0)
+    - (st2 === "debilitated" ? 1 : 0) - (st11 === "debilitated" ? 1 : 0);
+
+  if (score >= 3) {
+    text += "இவ்விரு அதிபதிகளும் வலுவாக அமைந்திருப்பது சிறந்த தனயோக அமைப்பாகும். பல்வேறு வழிகளில் வருமானம், நிலையான சேமிப்பு வளர்ச்சி, சொத்து சேர்க்கை மற்றும் பிற்காலத்தில் பெருஞ்செல்வச் செழிப்பு உண்டாகும். தகுந்த காலங்களில் செய்யும் முதலீடுகள் பன்மடங்கு பலன் தரும்.";
+  } else if (score >= 1) {
+    text += "தன நிலை நடுத்தரத்திற்கு மேலான பலத்துடன் உள்ளது. திட்டமிட்ட சேமிப்பும் உழைப்பும் உங்களைப் படிப்படியாகச் செல்வந்தராக்கும். திடீர் ஆதாய ஆசைகளைத் தவிர்த்து, நீண்ட கால முதலீடுகளில் கவனம் செலுத்துவது நலம்.";
+  } else {
+    text += "தன அதிபதிகள் சற்றுப் பலவீனமான நிலையில் இருப்பதால் பண வரவில் ஏற்ற இறக்கங்கள் இருக்கலாம். வரவுக்கேற்ற செலவுத் திட்டம், கடன்களைக் குறைத்தல் மற்றும் குல தெய்வ வழிபாடு ஆகியவை பொருளாதார நிலையை உறுதிப்படுத்தும். உழைப்பை நம்புங்கள்; காலம் கனியும்போது செல்வம் தானாகச் சேரும்.";
+  }
+  return text;
+}
+
+// வெளிநாடு & ஆன்மீகம் உரை
+function getForeignSpiritualReportTa(birthData) {
+  const lagnaSign = Math.floor(birthData.lagna / 30) % 12;
+  const planets = ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu"];
+  const houseOf = p => ((Math.floor(birthData[p] / 30) % 12) - lagnaSign + 12) % 12 + 1;
+
+  const in12 = planets.filter(p => houseOf(p) === 12);
+  const in9 = planets.filter(p => houseOf(p) === 9);
+  const lord9 = SIGN_LORDS[(lagnaSign + 8) % 12];
+  const lord12 = SIGN_LORDS[(lagnaSign + 11) % 12];
+  const h9lord = houseOf(lord9);
+  const h12lord = houseOf(lord12);
+
+  let text = "";
+
+  const foreignSignals = (in12.includes("rahu") ? 1 : 0) + (houseOf("rahu") === 9 ? 1 : 0)
+    + ([9, 12].includes(h12lord) ? 1 : 0) + (h9lord === 12 ? 1 : 0) + (in12.length > 0 ? 1 : 0);
+  if (foreignSignals >= 2) {
+    text += "உங்கள் ஜாதகத்தில் வெளிநாட்டுத் தொடர்புக்கான வலுவான அறிகுறிகள் காணப்படுகின்றன. வெளிநாட்டில் கல்வி, வேலை அல்லது நீண்ட கால வசிப்பு போன்ற வாய்ப்புகள் வாழ்வில் வரக்கூடும்; அவற்றைத் தயக்கமின்றிப் பயன்படுத்திக் கொள்ளலாம். ";
+  } else if (foreignSignals === 1) {
+    text += "வெளிநாட்டுப் பயணங்கள் அல்லது அயல்நாட்டு நிறுவனத் தொடர்புகள் மூலம் ஆதாயம் காணும் மிதமான யோகம் உள்ளது. ";
+  } else {
+    text += "தாய் மண்ணிலேயே நிலைபெற்று உயரும் அமைப்பே உங்களுக்கு வலுவாக உள்ளது; சொந்த ஊர், சொந்த முயற்சி உங்களுக்குச் சிறப்பான பலனைத் தரும். ";
+  }
+
+  text += `பாக்கியஸ்தானாதிபதி ${planetNamesTa[lord9]} ${h9lord}-ம் வீட்டில் அமர்ந்துள்ளார். `;
+  if (in9.includes("jupiter") || h9lord === 9 || getPlanetState(lord9, Math.floor(birthData[lord9] / 30) % 12) === "exalted") {
+    text += "9-ம் வீடு வலுப்பெற்றிருப்பதால் தர்ம சிந்தனை, குரு அருள், தீர்த்த யாத்திரைகள் மற்றும் ஆன்மீக ஞானம் உங்கள் வாழ்வில் சிறப்பாக மலரும். தந்தைவழி ஆசியும் உண்டு. ";
+  } else {
+    text += "தர்ம காரியங்களிலும் ஆன்மீக நாட்டத்திலும் படிப்படியான வளர்ச்சி இருக்கும்; வயது கூடக் கூட ஆன்மீக ஈடுபாடு ஆழமாகும். ";
+  }
+
+  if (houseOf("ketu") === 12 || houseOf("ketu") === 9) {
+    text += "மோட்சகாரகனான கேது ஆன்மீக ஸ்தானத்தில் அமர்ந்திருப்பது தியானம், யோகம் மற்றும் தத்துவத் தேடலில் ஆழ்ந்த ஈடுபாட்டையும் இறுதியில் மன நிறைவையும் தரும்.";
+  } else {
+    text += "தான தர்மங்களும் முறையான வழிபாடும் உங்கள் ஆன்மீகப் பயணத்தை மேலும் வலுப்படுத்தும்.";
+  }
+  return text;
+}
+
+// சந்திர ராசிப் பொதுப் பலன்கள் (12)
+const RASI_PALAN_TA = [
+  "மேஷ ராசியில் சந்திரன் அமைந்தவர்கள் துடிப்பும் துணிச்சலும் மிக்கவர்கள். எதையும் முதலில் தொடங்கும் முன்னோடிக் குணமும், நேரடியான பேச்சும் இவர்களின் அடையாளம். கோபத்தை நிதானப்படுத்தினால் தலைமைப் பொறுப்புகள் தேடி வரும். செவ்வாயின் அருளால் நிலம், வீடு சார்ந்த யோகங்கள் உண்டு.",
+  "ரிஷப ராசியில் சந்திரன் உச்சம் பெறுவதால் இவர்கள் மன உறுதியும் பொறுமையும் மிக்கவர்கள். ரசனை, கலை ஈடுபாடு, நிலையான சேமிப்புக் குணம் இவர்களுக்கு இயல்பு. சுக்கிரனின் அருளால் சொகுசு வாழ்வும் குடும்பச் செழிப்பும் உண்டு; பிடிவாதத்தை மட்டும் குறைத்துக்கொள்வது நலம்.",
+  "மிதுன ராசிக்காரர்கள் புதனின் அருளால் கூரிய அறிவும் சாதுரியமான பேச்சும் பெற்றவர்கள். பல துறை ஆர்வம், நகைச்சுவை உணர்வு, விரைந்து கற்கும் திறன் இவர்களின் பலம். ஒரே இலக்கில் நிலைத்து நின்றால் வியாபாரம், எழுத்து, ஊடகத் துறைகளில் பெரும் வெற்றி காண்பார்கள்.",
+  "கடக ராசியில் சந்திரன் ஆட்சி பெறுவதால் இவர்கள் ஆழ்ந்த அன்பும் இரக்க குணமும் கொண்டவர்கள். குடும்பமே இவர்களின் உலகம்; தாய்மை உணர்வுடன் அனைவரையும் அரவணைப்பார்கள். உணர்ச்சிவயப்படுவதைக் குறைத்தால் வணிகம், உணவு, மருத்துவத் துறைகளில் சிறந்து விளங்குவார்கள்.",
+  "சிம்ம ராசிக்காரர்கள் சூரியனின் அருளால் கம்பீரமும் தன்மானமும் மிக்கவர்கள். எங்கிருந்தாலும் தலைமை இவர்களைத் தேடி வரும்; பெருந்தன்மையும் கொடைக் குணமும் இயல்பு. புகழாசையை நிதானப்படுத்தினால் அரசு மற்றும் நிர்வாகத் துறைகளில் உயர்ந்த அந்தஸ்தைப் பெறுவார்கள்.",
+  "கன்னி ராசிக்காரர்கள் நுணுக்கமான பார்வையும் பகுத்தறிவும் கொண்டவர்கள். எதையும் முறைப்படுத்தி செம்மையாகச் செய்யும் திறன் இவர்களின் தனிச்சிறப்பு. அதிக சுயவிமர்சனத்தைத் தவிர்த்தால் கணக்கு, மருத்துவம், ஆராய்ச்சித் துறைகளில் தனி முத்திரை பதிப்பார்கள்.",
+  "துலா ராசிக்காரர்கள் சுக்கிரனின் அருளால் அழகுணர்வும் நடுநிலைமையும் மிக்கவர்கள். அனைவரிடமும் இணக்கமாகப் பழகும் இவர்கள் சிறந்த நண்பர்களாகவும் நீதிபதிகளாகவும் திகழ்வார்கள். முடிவெடுப்பதில் தயக்கத்தைக் குறைத்தால் கலை, வணிகம், சட்டத் துறைகளில் உயர்வார்கள்.",
+  "விருச்சிக ராசிக்காரர்கள் ஆழமான உள்ளுணர்வும் இலக்கை விடாப் பிடிவாதமும் கொண்டவர்கள். ரகசியம் காக்கும் திறனும் ஆராயும் குணமும் இவர்களின் பலம். பழிவாங்கும் எண்ணத்தைத் தவிர்த்தால் ஆராய்ச்சி, மருத்துவம், புலனாய்வுத் துறைகளில் சாதனை படைப்பார்கள்.",
+  "தனுசு ராசிக்காரர்கள் குருவின் அருளால் நேர்மையும் தர்ம சிந்தனையும் மிக்கவர்கள். சுதந்திரத்தை நேசிக்கும் இவர்கள் பயணங்கள், உயர்கல்வி, தத்துவம் ஆகியவற்றில் ஆர்வம் கொண்டவர்கள். நிதானமாகப் பேசிப் பழகினால் ஆசிரியர், அறிஞர், ஆலோசகர் என உயர்ந்த இடத்தைப் பெறுவார்கள்.",
+  "மகர ராசிக்காரர்கள் சனியின் அருளால் இடைவிடா உழைப்பும் கடமை உணர்வும் கொண்டவர்கள். மலை போல் சவால்கள் வந்தாலும் அசையாமல் நின்று வெல்லும் மனோதிடம் இவர்களின் அடையாளம். இளமையில் சிறு தடைகள் இருந்தாலும், நடுத்தர வயதிற்குப் பின் நிச்சயம் உயர்ந்த அந்தஸ்தும் செல்வமும் சேரும்.",
+  "கும்ப ராசிக்காரர்கள் சமூக நலனில் அக்கறையும் புதுமையான சிந்தனையும் கொண்டவர்கள். எதிர்காலத்தை முன்கூட்டியே கணிக்கும் தொலைநோக்குப் பார்வை இவர்களின் பலம். தனிமையை விரும்பினாலும், கூட்டு முயற்சிகளில் இணைந்தால் அறிவியல், தொழில்நுட்பம், சமூகப் பணிகளில் பெரும் புகழ் பெறுவார்கள்.",
+  "மீன ராசிக்காரர்கள் குருவின் அருளால் கருணையும் கற்பனை வளமும் மிக்கவர்கள். கலை, இசை, ஆன்மீகம் ஆகியவற்றில் இயல்பான ஈர்ப்பு உண்டு. கனவுலகில் மிதப்பதைக் குறைத்து செயலில் இறங்கினால், பிறர் மனம் அறிந்து உதவும் இவர்கள் மருத்துவம், கலை, ஆன்மீகத் துறைகளில் ஒளிர்வார்கள்."
+];
 
 function renderComprehensiveReport() {
   const birthData = currentHoroscopeData.birth;

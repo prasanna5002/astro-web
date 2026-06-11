@@ -648,10 +648,23 @@ button.secondary-btn:hover {
 }
 
 .detail-desc {
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   color: var(--text-secondary);
-  line-height: 1.6;
+  line-height: 1.7;
   margin-top: 0.5rem;
+}
+
+/* சீரான பலன் எழுத்துரு அளவுகள் */
+.reading-text {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+.reading-meta {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
 }
 
 /* Animations */
@@ -854,6 +867,37 @@ button.secondary-btn:hover {
 .dasa-item.expanded .dasa-arrow {
   transform: rotate(180deg);
   color: var(--primary-gold);
+}
+
+/* நடப்புத் தசா / புக்தி சிறப்பு வண்ணம் */
+.dasa-item.dasa-current {
+  border-color: rgba(229, 193, 88, 0.55);
+  background: rgba(229, 193, 88, 0.06);
+  box-shadow: 0 0 18px rgba(229, 193, 88, 0.12);
+}
+
+.dasa-item.dasa-current .dasa-badge {
+  background: var(--primary-gold);
+  color: #05060f;
+  font-weight: 700;
+}
+
+.current-tag {
+  background: rgba(85, 255, 85, 0.12);
+  color: #55ff55;
+  border: 1px solid rgba(85, 255, 85, 0.3);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: var(--font-tamil);
+  white-space: nowrap;
+}
+
+.bhukti-item.bhukti-current {
+  border-color: rgba(85, 255, 85, 0.45);
+  background: rgba(85, 255, 85, 0.05);
+  box-shadow: 0 0 12px rgba(85, 255, 85, 0.1);
 }
 
 .dasa-bhuktis {
