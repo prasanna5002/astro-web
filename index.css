@@ -1267,6 +1267,15 @@ button.secondary-btn:hover {
   display: none; /* Hidden on screen */
 }
 
+/* Hide print-only elements on screen */
+@media screen {
+  .print-charts-container,
+  .print-header,
+  .print-footer {
+    display: none !important;
+  }
+}
+
 /* Tamil Selection */
 body.lang-select-ta .en-text,
 body.lang-select-ta .info-value-en,

@@ -729,7 +729,7 @@ function updateUIFields(data, lngVal, birthDate) {
   const nak = NAKSHATRAS[nakInfo.index];
   document.getElementById("nakshatra-value-en").textContent = nakInfo.nameEn;
   document.getElementById("nakshatra-value-ta").textContent = nakInfo.nameTa;
-  document.getElementById("nakshatra-pada").innerHTML = `<span class="en-text">Pada ${nakInfo.pada} / </span>பாதம் ${nakInfo.pada}`;
+  document.getElementById("nakshatra-pada").innerHTML = `<span class="lang-en">Pada ${nakInfo.pada}</span><span class="lang-sep"> / </span><span class="lang-ta">பாதம் ${nakInfo.pada}</span>`;
   
   // B. Calculated Details Table
   document.getElementById("val-julian-date").textContent = data.jd.toFixed(5);
@@ -748,9 +748,9 @@ function updateUIFields(data, lngVal, birthDate) {
   document.getElementById("val-sidereal-moon").textContent = formatDMS(data.moon);
   
   // C. Astrological Lords
-  document.getElementById("val-rasi-lord").innerHTML = `<span class="en-text">${moonRasi.lordEn} (</span>${moonRasi.lordTa}<span class="en-text">)</span>`;
-  document.getElementById("val-nakshatra-lord").innerHTML = `<span class="en-text">${nakInfo.lordEn} (</span>${nakInfo.lordTa}<span class="en-text">)</span>`;
-  document.getElementById("val-lagna-lord").innerHTML = `<span class="en-text">${lagnaRasi.lordEn} (</span>${lagnaRasi.lordTa}<span class="en-text">)</span>`;
+  document.getElementById("val-rasi-lord").innerHTML = `<span class="lang-en">${moonRasi.lordEn}</span><span class="lang-sep"> / </span><span class="lang-ta">${moonRasi.lordTa}</span>`;
+  document.getElementById("val-nakshatra-lord").innerHTML = `<span class="lang-en">${nakInfo.lordEn}</span><span class="lang-sep"> / </span><span class="lang-ta">${nakInfo.lordTa}</span>`;
+  document.getElementById("val-lagna-lord").innerHTML = `<span class="lang-en">${lagnaRasi.lordEn}</span><span class="lang-sep"> / </span><span class="lang-ta">${lagnaRasi.lordTa}</span>`;
   
   // D. Birth Star Reading
   document.getElementById("val-star-desc").textContent = nak.desc;
@@ -2654,10 +2654,22 @@ function renderComprehensiveReport() {
   const careerTa = getDetailedCareerReportTa(h10LordKey, h10LordHouse, h10State, h10Occupants);
   const careerEn = getDetailedCareerReportEn(h10LordKey, h10LordHouse, h10State, h10Occupants);
 
-  document.getElementById("report-career-desc").innerHTML = `<span style="font-family: var(--font-tamil);"><span class="en-text"><strong>தமிழ்:</strong> </span>${careerTa}</span><span class="en-text"><br/><br/><strong>English:</strong> ${careerEn}</span>`;
-  document.getElementById("report-education-desc").innerHTML = `<span style="font-family: var(--font-tamil);"><span class="en-text"><strong>தமிழ்:</strong> </span>${educationTa}</span><span class="en-text"><br/><br/><strong>English:</strong> ${educationEn}</span>`;
-  document.getElementById("report-marriage-desc").innerHTML = `<span style="font-family: var(--font-tamil);"><span class="en-text"><strong>தமிழ்:</strong> </span>${marriageTa}</span><span class="en-text"><br/><br/><strong>English:</strong> ${marriageEn}</span>`;
-  document.getElementById("report-health-desc").innerHTML = `<span style="font-family: var(--font-tamil);"><span class="en-text"><strong>தமிழ்:</strong> </span>${healthTa}</span><span class="en-text"><br/><br/><strong>English:</strong> ${healthEn}</span>`;
+  document.getElementById("report-career-desc").innerHTML = `
+    <div class="lang-ta" style="font-family: var(--font-tamil); margin-bottom: 1rem;">${careerTa}</div>
+    <div class="lang-en" style="font-style: italic; color: var(--text-secondary);">${careerEn}</div>
+  `;
+  document.getElementById("report-education-desc").innerHTML = `
+    <div class="lang-ta" style="font-family: var(--font-tamil); margin-bottom: 1rem;">${educationTa}</div>
+    <div class="lang-en" style="font-style: italic; color: var(--text-secondary);">${educationEn}</div>
+  `;
+  document.getElementById("report-marriage-desc").innerHTML = `
+    <div class="lang-ta" style="font-family: var(--font-tamil); margin-bottom: 1rem;">${marriageTa}</div>
+    <div class="lang-en" style="font-style: italic; color: var(--text-secondary);">${marriageEn}</div>
+  `;
+  document.getElementById("report-health-desc").innerHTML = `
+    <div class="lang-ta" style="font-family: var(--font-tamil); margin-bottom: 1rem;">${healthTa}</div>
+    <div class="lang-en" style="font-style: italic; color: var(--text-secondary);">${healthEn}</div>
+  `;
 }
 window.renderComprehensiveReport = renderComprehensiveReport;
 
