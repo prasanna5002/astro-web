@@ -182,6 +182,18 @@ input:focus, select:focus {
   box-shadow: 0 0 15px rgba(157, 78, 221, 0.2);
 }
 
+/* தேதி/நேரம் உள்ளீட்டின் நாட்காட்டி & கடிகாரக் குறியீடுகளை வெள்ளை நிறமாக்கு */
+input[type="date"],
+input[type="time"] {
+  color-scheme: dark;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  opacity: 0.9;
+  cursor: pointer;
+}
+
 /* Autocomplete Suggestion Box */
 .autocomplete-suggestions {
   position: absolute;

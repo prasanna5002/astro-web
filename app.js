@@ -327,11 +327,10 @@ function setDefaultDateTime() {
   const dd = String(now.getDate()).padStart(2, '0');
   dateInput.value = `${yyyy}-${mm}-${dd}`;
   
-  // Format HH:MM:SS
+  // Format HH:MM
   const hh = String(now.getHours()).padStart(2, '0');
   const min = String(now.getMinutes()).padStart(2, '0');
-  const ss = String(now.getSeconds()).padStart(2, '0');
-  timeInput.value = `${hh}:${min}:${ss}`;
+  timeInput.value = `${hh}:${min}`;
 }
 
 // 4. GET CURRENT LOCATION VIA GPS
