@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vedic Astrology Calculator - Rasi, Nakshatra & Lagna</title>
+  <meta name="description" content="Calculate your Vedic Moon Sign (Rasi), Birth Star (Natchthiram / Nakshatra), and Ascendant (Laganam / Lagna) with high-precision astronomical calculations.">
+  <link rel="stylesheet" href="index.css">
+  <!-- Include Astronomy Engine Browser library from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/astronomy-engine/astronomy.browser.min.js"></script>
+</head>
+<body>
+  <!-- Canvas for dynamic starry background -->
+  <canvas id="stars-canvas"></canvas>
+
+  <div class="app-container">
+    <header>
+      <!-- Sun/Moon Astrology Symbol SVG -->
+      <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/2000/svg">
+        <circle cx="50" cy="50" r="45" fill="none" stroke="#e5c158" stroke-width="2" stroke-dasharray="4 2"/>
+        <circle cx="50" cy="50" r="38" fill="none" stroke="#9d4edd" stroke-width="1.5"/>
+        <path d="M50,15 A35,35 0 0,0 50,85 A25,25 0 0,1 50,15 Z" fill="#e5c158"/>
+        <circle cx="50" cy="50" r="6" fill="#e5c158"/>
+        <line x1="50" y1="5" x2="50" y2="12" stroke="#e5c158" stroke-width="2"/>
+        <line x1="50" y1="88" x2="50" y2="95" stroke="#e5c158" stroke-width="2"/>
+        <line x1="5" y1="50" x2="12" y2="50" stroke="#e5c158" stroke-width="2"/>
+        <line x1="88" y1="50" x2="95" y2="50" stroke="#e5c158" stroke-width="2"/>
+      </svg>
+      <h1>சோதிடக் கணிப்பான்</h1>
+      <p class="subtitle">Vedic Astrology Calculator for Rasi (இராசி), Natchthiram (நட்சத்திரம்), and Laganam (லக்னம்)</p>
+    </header>
+
+    <main class="main-grid">
+      <!-- Left Column: Inputs -->
+      <section class="glass-panel" id="input-panel">
+        <div class="loading-overlay" id="loading-spinner">
+          <div class="spinner"></div>
+          <div class="loading-text">CALCULATING...</div>
+        </div>
+        
+        <h2 class="panel-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+            <circle cx="12" cy="12" r="4"/>
+          </svg>
+          Birth Details
+        </h2>
+        
+        <form id="calculator-form" onsubmit="calculateAstrology(event)">
+          <!-- Google Maps API Key Settings Collapsible -->
+          <div class="settings-section" style="margin-bottom: 1.5rem;">
+            <button type="button" class="secondary-btn" id="toggle-settings-btn" onclick="toggleSettings()" style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem; border-color: rgba(229,193,88,0.15); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+              Google Maps API Settings
+            </button>
+            <div id="settings-container" style="display: none; padding: 1rem; background: rgba(255,255,255,0.02); border: 1px dashed rgba(229,193,88,0.2); border-radius: var(--radius-md); margin-top: 0.5rem; animation: fadeIn 0.4s var(--transition-smooth);">
+              <div class="form-group" style="margin-bottom: 0.75rem;">
+                <label for="gmaps-api-key" style="font-size: 0.75rem; color: var(--text-secondary);">Google Maps API Key</label>
+                <input type="password" id="gmaps-api-key" placeholder="Paste your API key here (AIzaSy...)" style="padding: 0.5rem 0.75rem; font-size: 0.85rem; background: rgba(255,255,255,0.02);">
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <button type="button" class="secondary-btn" onclick="saveApiKey()" style="padding: 0.5rem 1rem; font-size: 0.8rem; font-weight: 600; width: auto; background: var(--primary-gold); color: #05060f;">Save Key</button>
+                <button type="button" class="secondary-btn" onclick="clearApiKey()" style="padding: 0.5rem 1rem; font-size: 0.8rem; font-weight: 600; width: auto; background: rgba(255,0,0,0.15); border-color: rgba(255,0,0,0.25); color: #ff5555;">Clear Key</button>
+              </div>
+              <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.3;">Adding a Google Maps API Key enables auto-fetching coordinates and timezones using official Google APIs. Without a key, the app falls back to a free geocoding lookup.</p>
+            </div>
+          </div>
+
+          <!-- Personal Details Settings -->
+          <div class="settings-section" style="margin-bottom: 1.5rem;">
+            <button type="button" class="secondary-btn" id="toggle-personal-btn" onclick="togglePersonal()" style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem; border-color: rgba(229,193,88,0.15); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              Personal Details / தனிப்பட்ட விவரங்கள்
+            </button>
+            <div id="personal-container" style="display: none; padding: 1rem; background: rgba(255,255,255,0.02); border: 1px dashed rgba(229,193,88,0.2); border-radius: var(--radius-md); margin-top: 0.5rem; animation: fadeIn 0.4s var(--transition-smooth);">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="user-name">Name / பெயர்</label>
+                  <input type="text" id="user-name" placeholder="Name" style="padding: 0.5rem 0.75rem; font-size: 0.85rem; background: rgba(255,255,255,0.02);">
+                </div>
+                <div class="form-group">
+                  <label for="father-name">Father / தந்தை</label>
+                  <input type="text" id="father-name" placeholder="Father's Name" style="padding: 0.5rem 0.75rem; font-size: 0.85rem; background: rgba(255,255,255,0.02);">
+                </div>
+                <div class="form-group">
+                  <label for="mother-name">Mother / தாய்</label>
+                  <input type="text" id="mother-name" placeholder="Mother's Name" style="padding: 0.5rem 0.75rem; font-size: 0.85rem; background: rgba(255,255,255,0.02);">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Astrologer Details Settings -->
+          <div class="settings-section" style="margin-bottom: 1.5rem;">
+            <button type="button" class="secondary-btn" id="toggle-astrologer-btn" onclick="toggleAstrologer()" style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem; border-color: rgba(229,193,88,0.15); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              Astrologer Details / ஜோதிடர் விவரங்கள்
+            </button>
+            <div id="astrologer-container" style="display: none; padding: 1rem; background: rgba(255,255,255,0.02); border: 1px dashed rgba(229,193,88,0.2); border-radius: var(--radius-md); margin-top: 0.5rem; animation: fadeIn 0.4s var(--transition-smooth);">
+              <div class="form-row" style="margin-bottom: 0.75rem;">
+                <div class="form-group">
+                  <label for="astro-name">Astrologer / சோதிடர்</label>
+                  <input type="text" id="astro-name" placeholder="Astrologer Name" style="padding: 0.5rem 0.75rem; font-size: 0.85rem; background: rgba(255,255,255,0.02);">
+                </div>
+                <div class="form-group">
+                  <label for="astro-center">Center / மையம்</label>
+                  <input type="text" id="astro-center" placeholder="Center Name" style="padding: 0.5rem 0.75rem; font-size: 0.85rem; background: rgba(255,255,255,0.02);">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="astro-address">Address / முகவரி</label>
+                  <input type="text" id="astro-address" placeholder="Address" style="padding: 0.5rem 0.75rem; font-size: 0.85rem; background: rgba(255,255,255,0.02);">
+                </div>
+                <div class="form-group">
+                  <label for="astro-contact">Contact / தொடர்பு</label>
+                  <input type="text" id="astro-contact" placeholder="Contact Details" style="padding: 0.5rem 0.75rem; font-size: 0.85rem; background: rgba(255,255,255,0.02);">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Date & Time of Birth Row -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="birth-date">Date of Birth / பிறந்த தேதி</label>
+              <input type="date" id="birth-date" required>
+            </div>
+            <div class="form-group">
+              <label for="birth-time">Time of Birth / பிறந்த நேரம்</label>
+              <input type="time" id="birth-time" step="1" required>
+            </div>
+          </div>
+
+          <!-- Location Search -->
+          <div class="form-group">
+            <label for="birth-location">Birth Place / பிறந்த இடம்</label>
+            <input type="text" id="birth-location" placeholder="Search city (e.g. Chennai, Madurai...)" autocomplete="off">
+            <div class="autocomplete-suggestions" id="suggestions-box" style="display: none;"></div>
+          </div>
+
+          <!-- GPS Coordinates -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="latitude">Latitude (Decimal)</label>
+              <input type="number" id="latitude" step="0.0001" min="-90" max="90" required placeholder="e.g. 13.0827">
+            </div>
+            <div class="form-group">
+              <label for="longitude">Longitude (Decimal)</label>
+              <input type="number" id="longitude" step="0.0001" min="-180" max="180" required placeholder="e.g. 80.2707">
+            </div>
+          </div>
+
+          <!-- Timezone & Elevation -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="timezone">Timezone Offset</label>
+              <select id="timezone" required>
+                <option value="5.5">India (IST - UTC+5:30)</option>
+                <option value="0">Greenwich (GMT / UTC+0:00)</option>
+                <option value="1">Central Europe (CET - UTC+1:00)</option>
+                <option value="8">Singapore/Malaysia (SGT - UTC+8:00)</option>
+                <option value="4">Dubai (GST - UTC+4:00)</option>
+                <option value="-5">Eastern USA (EST - UTC-5:00)</option>
+                <option value="-8">Pacific USA (PST - UTC-8:00)</option>
+                <option value="10">Sydney (AEST - UTC+10:00)</option>
+                <!-- Add other common values directly -->
+                <option value="-12">-12:00</option>
+                <option value="-11">-11:00</option>
+                <option value="-10">-10:00</option>
+                <option value="-9">-9:00</option>
+                <option value="-8.5">-08:30</option>
+                <option value="-8">-08:00</option>
+                <option value="-7">-07:00</option>
+                <option value="-6">-06:00</option>
+                <option value="-5">-05:00</option>
+                <option value="-4">-04:00</option>
+                <option value="-3.5">-03:30</option>
+                <option value="-3">-03:00</option>
+                <option value="-2">-02:00</option>
+                <option value="-1">-01:00</option>
+                <option value="0">00:00</option>
+                <option value="1">01:00</option>
+                <option value="2">02:00</option>
+                <option value="3">03:00</option>
+                <option value="3.5">03:30</option>
+                <option value="4">04:00</option>
+                <option value="4.5">04:30</option>
+                <option value="5">05:00</option>
+                <option value="5.5" selected>05:30</option>
+                <option value="5.75">05:45</option>
+                <option value="6">06:00</option>
+                <option value="6.5">06:30</option>
+                <option value="7">07:00</option>
+                <option value="8">08:00</option>
+                <option value="9">09:00</option>
+                <option value="9.5">09:30</option>
+                <option value="10">10:00</option>
+                <option value="10.5">10:30</option>
+                <option value="11">11:00</option>
+                <option value="11.5">11:30</option>
+                <option value="12">12:00</option>
+                <option value="12.75">12:45</option>
+                <option value="13">13:00</option>
+                <option value="14">14:00</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="use-gps">&nbsp;</label>
+              <button type="button" class="secondary-btn" id="gps-btn" onclick="getCurrentLocation()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M12 2a8 8 0 0 1 8 8c0 5.25-8 12-8 12S4 15.25 4 10a8 8 0 0 1 8-8z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                My Location
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" id="submit-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="16"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            Calculate Horoscope
+          </button>
+        </form>
+      </section>
+
+      <!-- Right Column: Outputs -->
+      <section class="glass-panel" id="result-panel">
+        <!-- Welcome Screen (Shown before calculation) -->
+        <div id="welcome-view" class="welcome-screen">
+          <svg class="welcome-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/2000/svg">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#e5c158" stroke-dasharray="5 5" stroke-width="1.5"/>
+            <path d="M50,18 A32,32 0 0,0 50,82 A22,22 0 0,1 50,18 Z" fill="none" stroke="#9d4edd" stroke-width="2"/>
+            <polygon points="50,10 54,22 66,22 56,30 60,42 50,34 40,42 44,30 34,22 46,22" fill="#e5c158"/>
+            <polygon points="50,90 47,80 37,80 45,74 41,64 50,70 59,64 55,74 63,80 53,80" fill="#e5c158" opacity="0.6"/>
+          </svg>
+          <h2>Ready to Calculate</h2>
+          <p>Please enter your birth date, time, and location on the left, then click "Calculate Horoscope" to view your Rasi, Natchthiram, and Laganam details.</p>
+        </div>
+
+        <!-- Output Details (Hidden initially) -->
+        <div id="results-view" class="results-wrapper" style="display: none;">
+          
+          <!-- PRINT ONLY COVER PAGE (Page 1) -->
+          <div id="print-cover-page" class="print-only-page" style="page-break-after: always; break-after: page;">
+            <div class="cover-content" style="text-align: center; padding: 6rem 2rem; border: 4px double #333333; margin: 2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 80vh;">
+              <h1 style="font-size: 2.6rem; margin-bottom: 2rem; color: #000; font-family: var(--font-tamil), serif; font-weight: bold; line-height: 1.4;">
+                <span class="lang-ta">ஜாதகக் கணிப்பு அறிக்கை</span>
+                <span class="lang-sep"> / </span>
+                <span class="lang-en">Horoscope Report</span>
+              </h1>
+              <div style="width: 150px; height: 2px; background: #333333; margin: 3rem 0;"></div>
+              
+              <div class="astro-details-box" style="margin-top: 4rem; line-height: 2.2; font-size: 1.15rem; color: #000;">
+                <h2 style="font-size: 2rem; font-weight: bold; margin-bottom: 1rem; font-family: var(--font-tamil), serif;" id="print-cover-center">Center Name</h2>
+                <h3 style="font-size: 1.5rem; margin-bottom: 1.25rem; font-weight: bold;" id="print-cover-name">Astrologer Name</h3>
+                <p style="margin-bottom: 0.5rem;" id="print-cover-address">Address</p>
+                <p style="font-weight: bold; margin-top: 1rem; font-size: 1.2rem;" id="print-cover-contact">Contact Info</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- PRINT ONLY PERSONAL DETAILS PAGE (Page 2) -->
+          <div id="print-details-page" class="print-only-page" style="page-break-after: always; break-after: page; padding: 2rem;">
+            <h2 style="text-align: center; font-size: 2rem; border-bottom: 2px solid #333333; padding-bottom: 0.5rem; margin-bottom: 3rem; color: #000; font-family: var(--font-tamil), serif; font-weight: bold;">
+              <span class="lang-ta">ஜாதகர் பிறப்பு விவரங்கள்</span>
+              <span class="lang-sep"> / </span>
+              <span class="lang-en">Birth details & Parameters</span>
+            </h2>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 2rem; font-size: 1.2rem; line-height: 2.2; color: #000;">
+              <tbody>
+                <tr style="border-bottom: 1px dashed #ccc;">
+                  <td style="padding: 1rem; font-weight: bold; width: 40%;"><span class="lang-ta">பெயர்</span><span class="lang-sep"> / </span><span class="lang-en">Name</span></td>
+                  <td style="padding: 1rem;" id="print-pd-name">Name</td>
+                </tr>
+                <tr style="border-bottom: 1px dashed #ccc;">
+                  <td style="padding: 1rem; font-weight: bold;"><span class="lang-ta">தந்தை பெயர்</span><span class="lang-sep"> / </span><span class="lang-en">Father's Name</span></td>
+                  <td style="padding: 1rem;" id="print-pd-father">Father Name</td>
+                </tr>
+                <tr style="border-bottom: 1px dashed #ccc;">
+                  <td style="padding: 1rem; font-weight: bold;"><span class="lang-ta">தாய் பெயர்</span><span class="lang-sep"> / </span><span class="lang-en">Mother's Name</span></td>
+                  <td style="padding: 1rem;" id="print-pd-mother">Mother Name</td>
+                </tr>
+                <tr style="border-bottom: 1px dashed #ccc;">
+                  <td style="padding: 1rem; font-weight: bold;"><span class="lang-ta">பிறந்த தேதி</span><span class="lang-sep"> / </span><span class="lang-en">Date of Birth</span></td>
+                  <td style="padding: 1rem;" id="print-pd-dob">Date</td>
+                </tr>
+                <tr style="border-bottom: 1px dashed #ccc;">
+                  <td style="padding: 1rem; font-weight: bold;"><span class="lang-ta">பிறந்த நேரம்</span><span class="lang-sep"> / </span><span class="lang-en">Time of Birth</span></td>
+                  <td style="padding: 1rem;" id="print-pd-tob">Time</td>
+                </tr>
+                <tr style="border-bottom: 1px dashed #ccc;">
+                  <td style="padding: 1rem; font-weight: bold;"><span class="lang-ta">பிறந்த இடம்</span><span class="lang-sep"> / </span><span class="lang-en">Place of Birth</span></td>
+                  <td style="padding: 1rem;" id="print-pd-pob">Place of Birth</td>
+                </tr>
+                <tr style="border-bottom: 1px dashed #ccc;">
+                  <td style="padding: 1rem; font-weight: bold;"><span class="lang-ta">லக்னம் (லக்ன பாகை)</span><span class="lang-sep"> / </span><span class="lang-en">Laganam (Ascendant)</span></td>
+                  <td style="padding: 1rem;" id="print-pd-lagna">Lagna</td>
+                </tr>
+                <tr style="border-bottom: 1px dashed #ccc;">
+                  <td style="padding: 1rem; font-weight: bold;"><span class="lang-ta">இராசி (சந்திரன் பாகை)</span><span class="lang-sep"> / </span><span class="lang-en">Rasi (Moon Sign)</span></td>
+                  <td style="padding: 1rem;" id="print-pd-rasi">Rasi</td>
+                </tr>
+                <tr style="border-bottom: 1px dashed #ccc;">
+                  <td style="padding: 1rem; font-weight: bold;"><span class="lang-ta">நட்சத்திரம் (பாதம்)</span><span class="lang-sep"> / </span><span class="lang-en">Natchthiram (Pada)</span></td>
+                  <td style="padding: 1rem;" id="print-pd-nakshatra">Nakshatra</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 3-Card Summary Grid -->
+          <div class="astrology-summary">
+            <!-- Lagna Card -->
+            <div class="info-card">
+              <span class="info-label"><span class="ta-only-print">லக்னம்</span><span class="en-text">Laganam (Ascendant) / லக்னம்</span></span>
+              <span class="info-value-en" id="lagna-value-en">Aries</span>
+              <span class="info-value-ta" id="lagna-value-ta">மேஷம்</span>
+              <span class="info-subtext" id="lagna-degree">12° 45' 12"</span>
+            </div>
+
+            <!-- Rasi Card -->
+            <div class="info-card">
+              <span class="info-label"><span class="ta-only-print">இராசி</span><span class="en-text">Rasi (Moon Sign) / இராசி</span></span>
+              <span class="info-value-en" id="rasi-value-en">Taurus</span>
+              <span class="info-value-ta" id="rasi-value-ta">ரிஷபம்</span>
+              <span class="info-subtext" id="rasi-degree">18° 10' 05"</span>
+            </div>
+
+            <!-- Nakshatra Card -->
+            <div class="info-card">
+              <span class="info-label"><span class="ta-only-print">நட்சத்திரம்</span><span class="en-text">Natchthiram / நட்சத்திரம்</span></span>
+              <span class="info-value-en" id="nakshatra-value-en">Rohini</span>
+              <span class="info-value-ta" id="nakshatra-value-ta">ரோகிணி</span>
+              <span class="info-subtext" id="nakshatra-pada">Pada 3 / பாதம் 3</span>
+            </div>
+          </div>
+          <!-- Results Header & Print Button -->
+          <div class="results-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(255, 255, 255, 0.08); padding-bottom: 1rem; margin-bottom: 2rem;">
+            <h2 style="color: var(--primary-gold); font-size: 1.6rem; font-weight: 700; margin: 0; font-family: var(--font-tamil), var(--font-astrology);">ஜாதக அறிக்கை<span class="en-text"> (Horoscope Report)</span></h2>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <div class="lang-selector-container" style="display: flex; align-items: center; gap: 0.5rem;">
+                <label for="report-lang" style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;"><span class="en-text">Language / </span>மொழி:</label>
+                <select id="report-lang" onchange="changeLanguage(this.value)" style="background: rgba(255,255,255,0.03); color: var(--text-primary); border: 1px solid rgba(229,193,88,0.25); border-radius: var(--radius-md); padding: 0.5rem 0.75rem; font-size: 0.85rem; outline: none; cursor: pointer; transition: var(--transition-smooth); font-family: var(--font-tamil), sans-serif;">
+                  <option value="bi" selected>Bilingual / இருமொழி</option>
+                  <option value="ta">Tamil / தமிழ்</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+              <button type="button" class="secondary-btn print-btn" id="print-report-btn" onclick="triggerPrint()" style="width: auto; display: flex; align-items: center; gap: 0.5rem; background: var(--primary-gold); color: #05060f; border: none; font-weight: 700; padding: 0.65rem 1.25rem; border-radius: var(--radius-md); font-size: 0.9rem; cursor: pointer; transition: var(--transition-smooth); box-shadow: var(--gold-glow);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="6 9 6 2 18 2 18 9"/>
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                  <rect x="6" y="14" width="12" height="8"/>
+                </svg>
+                <span class="en-text">Print Report / </span>அச்சிடுக
+              </button>
+              <button type="button" class="secondary-btn word-btn" id="export-word-btn" onclick="exportToWord()" style="width: auto; display: flex; align-items: center; gap: 0.5rem; background: #2b579a; color: #ffffff; border: none; font-weight: 700; padding: 0.65rem 1.25rem; border-radius: var(--radius-md); font-size: 0.9rem; cursor: pointer; transition: var(--transition-smooth); box-shadow: 0 0 10px rgba(43, 87, 154, 0.4);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+                <span class="en-text">Export Word / </span>கோப்பாகப் பதிவிறக்கு
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Tab Navigation Bar (Hidden on Screen) -->
+          <div class="main-tabs" style="display: none !important;">
+            <button type="button" class="main-tab active" id="main-tab-charts" onclick="switchMainTab('charts')">சக்கரங்கள் (Charts)</button>
+            <button type="button" class="main-tab" id="main-tab-dasa" onclick="switchMainTab('dasa')">தசா புக்தி (Dasa Bhuktis)</button>
+            <button type="button" class="main-tab" id="main-tab-ashtakavarga" onclick="switchMainTab('ashtakavarga')">அஷ்டகவர்க்கம் (Ashtakavarga)</button>
+            <button type="button" class="main-tab" id="main-tab-aspects" onclick="switchMainTab('aspects')">கிரக சம்பந்தம் & பலன்கள் (Placements & Aspects)</button>
+            <button type="button" class="main-tab" id="main-tab-houses" onclick="switchMainTab('houses')">பாவ பலன்கள் (House Readings)</button>
+          </div>
+
+          <!-- Panel 1: Charts (D1, D9, D3, Transit) -->
+          <div id="panel-charts" class="main-tab-panel active" style="margin-bottom: 4rem;">
+            <h2 class="section-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="4"/>
+              </svg>
+              சக்கரங்கள்<span class="en-text"> (Charts)</span>
+            </h2>
+            <!-- Split Results: Chart and Planetary details -->
+            <div class="results-layout">
+            <!-- Four Charts Stacked Vertically -->
+            <div class="charts-stack" style="display: flex; flex-direction: column; gap: 2.5rem; width: 100%;">
+              
+              <!-- Rasi D1 Chart -->
+              <div class="chart-container-wrapper" style="width: 100%;">
+                <h3 style="color: var(--primary-gold); font-size: 1.15rem; margin-bottom: 0.75rem; text-align: center; font-family: var(--font-tamil), var(--font-astrology); font-weight: 600;">இராசி சக்கரம்<span class="en-text"> (Rasi D1)</span></h3>
+                <div class="chart-container" style="min-height: auto; padding: 1rem;">
+                  <svg id="rasi-chart-svg-d1" class="chart-svg" viewBox="0 0 200 200"></svg>
+                </div>
+              </div>
+
+              <!-- Navamsa D9 Chart -->
+              <div class="chart-container-wrapper" style="width: 100%;">
+                <h3 style="color: var(--primary-gold); font-size: 1.15rem; margin-bottom: 0.75rem; text-align: center; font-family: var(--font-tamil), var(--font-astrology); font-weight: 600;">நவாம்ச சக்கரம்<span class="en-text"> (Navamsa D9)</span></h3>
+                <div class="chart-container" style="min-height: auto; padding: 1rem;">
+                  <svg id="rasi-chart-svg-d9" class="chart-svg" viewBox="0 0 200 200"></svg>
+                </div>
+              </div>
+
+              <!-- Drekkana D3 Chart -->
+              <div class="chart-container-wrapper" style="width: 100%;">
+                <h3 style="color: var(--primary-gold); font-size: 1.15rem; margin-bottom: 0.75rem; text-align: center; font-family: var(--font-tamil), var(--font-astrology); font-weight: 600;">திரேக்காண சக்கரம்<span class="en-text"> (Drekkana D3)</span></h3>
+                <div class="chart-container" style="min-height: auto; padding: 1rem;">
+                  <svg id="rasi-chart-svg-d3" class="chart-svg" viewBox="0 0 200 200"></svg>
+                </div>
+              </div>
+
+              <!-- Transit Chart -->
+              <div class="chart-container-wrapper" style="width: 100%;">
+                <h3 style="color: var(--primary-gold); font-size: 1.15rem; margin-bottom: 0.75rem; text-align: center; font-family: var(--font-tamil), var(--font-astrology); font-weight: 600;">கோசாரச் சக்கரம்<span class="en-text"> (Transit Chart)</span></h3>
+                <div class="chart-container" style="min-height: auto; padding: 1rem;">
+                  <svg id="rasi-chart-svg-transit" class="chart-svg" viewBox="0 0 200 200"></svg>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Print Only Charts (2x2 Grid) (Page 3) -->
+            <div class="print-charts-container" style="display: flex; flex-direction: column; gap: 2rem; margin-bottom: 2rem; width: 100%;">
+              <div style="display: flex; justify-content: space-around; gap: 2rem; width: 100%;">
+                <div class="print-chart-box" style="flex: 1; text-align: center; max-width: 280px;">
+                  <h4 class="print-chart-title" style="font-weight: bold; font-size: 1.05rem; margin-bottom: 0.5rem; color: #000;"><span class="lang-ta">இராசி சக்கரம்</span><span class="lang-sep"> (</span><span class="lang-en">Rasi D1</span><span class="lang-sep">)</span></h4>
+                  <svg id="print-chart-d1" class="chart-svg" viewBox="0 0 200 200"></svg>
+                </div>
+                <div class="print-chart-box" style="flex: 1; text-align: center; max-width: 280px;">
+                  <h4 class="print-chart-title" style="font-weight: bold; font-size: 1.05rem; margin-bottom: 0.5rem; color: #000;"><span class="lang-ta">நவாம்ச சக்கரம்</span><span class="lang-sep"> (</span><span class="lang-en">Navamsa D9</span><span class="lang-sep">)</span></h4>
+                  <svg id="print-chart-d9" class="chart-svg" viewBox="0 0 200 200"></svg>
+                </div>
+              </div>
+              <div style="display: flex; justify-content: space-around; gap: 2rem; width: 100%;">
+                <div class="print-chart-box" style="flex: 1; text-align: center; max-width: 280px;">
+                  <h4 class="print-chart-title" style="font-weight: bold; font-size: 1.05rem; margin-bottom: 0.5rem; color: #000;"><span class="lang-ta">திரேக்காண சக்கரம்</span><span class="lang-sep"> (</span><span class="lang-en">Drekkana D3</span><span class="lang-sep">)</span></h4>
+                  <svg id="print-chart-d3" class="chart-svg" viewBox="0 0 200 200"></svg>
+                </div>
+                <div class="print-chart-box" style="flex: 1; text-align: center; max-width: 280px;">
+                  <h4 class="print-chart-title" style="font-weight: bold; font-size: 1.05rem; margin-bottom: 0.5rem; color: #000;"><span class="lang-ta">கோசாரச் சக்கரம்</span><span class="lang-sep"> (</span><span class="lang-en">Transit Chart</span><span class="lang-sep">)</span></h4>
+                  <svg id="print-chart-transit" class="chart-svg" viewBox="0 0 200 200"></svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="print-page-break"></div>
+
+            <!-- Key Info Table -->
+            <div class="detail-block">
+              <h3>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+                <span class="ta-only-print">கணக்கிடப்பட்ட அளவீடுகள்</span><span class="en-text">Calculated Parameters</span>
+              </h3>
+              <div class="detail-list">
+                <div class="detail-item">
+                  <span class="detail-key"><span class="ta-only-print">ஜூலியன் தேதி (UT)</span><span class="en-text">Julian Date (UT)</span></span>
+                  <span class="detail-val" id="val-julian-date">2461200.07</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-key"><span class="ta-only-print">அயனாம்சம் (லஹிரி)</span><span class="en-text">Lahiri Ayanamsha</span></span>
+                  <span class="detail-val" id="val-ayanamsha">24° 13' 32"</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-key"><span class="ta-only-print">உள்ளூர் நட்சத்திர நேரம்</span><span class="en-text">Local Sidereal Time</span></span>
+                  <span class="detail-val" id="val-lst">14h 23m 12s</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-key"><span class="ta-only-print">பாகை சாய்வு நிலை</span><span class="en-text">Obliquity of Ecliptic</span></span>
+                  <span class="detail-val" id="val-obliquity">23° 26' 09"</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-key"><span class="ta-only-print">சாயன சந்திரன் நிலை</span><span class="en-text">Tropical Moon Position</span></span>
+                  <span class="detail-val" id="val-tropical-moon">108° 12' 45"</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-key"><span class="ta-only-print">நிராயன சந்திரன் நிலை</span><span class="en-text">Sidereal Moon Position</span></span>
+                  <span class="detail-val" id="val-sidereal-moon">83° 59' 13"</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Extended Explanatory Details -->
+            <div class="details-panel">
+              <!-- Rasi & Natchthiram Details -->
+              <div class="detail-block">
+                <h3>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                  <span class="ta-only-print">அதிபதிகள் விவரம்</span><span class="en-text">Astrological Lords</span>
+                </h3>
+                <div class="detail-list">
+                  <div class="detail-item">
+                    <span class="detail-key"><span class="ta-only-print">இராசி அதிபதி</span><span class="en-text">Rasi Lord (இராசி அதிபதி)</span></span>
+                    <span class="detail-val" id="val-rasi-lord">Venus (சுக்கிரன்)</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-key"><span class="ta-only-print">நட்சத்திர அதிபதி</span><span class="en-text">Nakshatra Lord (நட்சத்திர அதிபதி)</span></span>
+                    <span class="detail-val" id="val-nakshatra-lord">Moon (சந்திரன்)</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-key"><span class="ta-only-print">லக்னாதிபதி</span><span class="en-text">Lagna Lord (லக்னாதிபதி)</span></span>
+                    <span class="detail-val" id="val-lagna-lord">Mars (செவ்வாய்)</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- General Characteristics / Reading -->
+              <div class="detail-block">
+                <h3>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 16v-4"/>
+                    <path d="M12 8h.01"/>
+                  </svg>
+                  <span class="ta-only-print">நட்சத்திர குணநலன்கள்</span><span class="en-text">Birth Star Characteristics</span>
+                </h3>
+                <p class="detail-desc" id="val-star-desc">
+                  Rohini is the fourth Nakshatra, ruled by the Moon and symbolized by a temple cart or chariot. People born under Rohini are generally highly attractive, artistic, creative, and family-oriented. They possess strong expressive capabilities, values, and are highly successful in creative endeavors.
+                </p>
+              </div>
+            </div>
+
+            <div class="print-page-break"></div>
+
+            <!-- Planets Table Wrapper (Birth Positions) -->
+            <div class="planets-table-wrapper">
+              <div class="table-header">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <circle cx="12" cy="12" r="4"/>
+                </svg>
+                ஜனன கிரக நிலைகள்<span class="en-text"> (Birth Planetary Positions - D1, D9, D3)</span>
+              </div>
+              <div class="planets-table-container">
+                <table class="planets-table">
+                  <thead>
+                    <tr>
+                      <th>கிரகம்<span class="en-text"> (Planet)</span></th>
+                      <th>இராசி<span class="en-text"> (Rasi)</span></th>
+                      <th>பாகை<span class="en-text"> (Longitude)</span></th>
+                      <th>நட்சத்திரம்<span class="en-text"> (Nakshatra)</span></th>
+                      <th>பாதம்<span class="en-text"> (Pada)</span></th>
+                    </tr>
+                  </thead>
+                  <tbody id="planets-table-body">
+                    <!-- Dynamic rows will be inserted here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Planets Table Wrapper (Transit Positions) -->
+            <div class="planets-table-wrapper" style="margin-top: 1.5rem;">
+              <div class="table-header">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <circle cx="12" cy="12" r="4"/>
+                </svg>
+                கோசார கிரக நிலைகள்<span class="en-text"> (Transit Planetary Positions)</span>
+              </div>
+              <div class="planets-table-container">
+                <table class="planets-table">
+                  <thead>
+                    <tr>
+                      <th>கிரகம்<span class="en-text"> (Planet)</span></th>
+                      <th>இராசி<span class="en-text"> (Rasi)</span></th>
+                      <th>பாகை<span class="en-text"> (Longitude)</span></th>
+                      <th>நخبارம்<span class="en-text"> (Nakshatra)</span></th>
+                      <th>பாதம்<span class="en-text"> (Pada)</span></th>
+                    </tr>
+                  </thead>
+                  <tbody id="transit-table-body">
+                    <!-- Dynamic rows will be inserted here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-key"><span class="ta-only-print">நட்சத்திர அதிபதி</span><span class="en-text">Nakshatra Lord (நட்சத்திர அதிபதி)</span></span>
+                  <span class="detail-val" id="val-nakshatra-lord">Moon (சந்திரன்)</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-key"><span class="ta-only-print">லக்னாதிபதி</span><span class="en-text">Lagna Lord (லக்னாதிபதி)</span></span>
+                  <span class="detail-val" id="val-lagna-lord">Mars (செவ்வாய்)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- General Characteristics / Reading -->
+            <div class="detail-block">
+              <h3>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 16v-4"/>
+                  <path d="M12 8h.01"/>
+                </svg>
+                <span class="ta-only-print">நட்சத்திர குணநலன்கள்</span><span class="en-text">Birth Star Characteristics</span>
+              </h3>
+              <p class="detail-desc" id="val-star-desc">
+                Rohini is the fourth Nakshatra, ruled by the Moon and symbolized by a temple cart or chariot. People born under Rohini are generally highly attractive, artistic, creative, and family-oriented. They possess strong expressive capabilities, values, and are highly successful in creative endeavors.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2: Dasa Bhuktis -->
+        <div id="panel-dasa" class="main-tab-panel" style="margin-bottom: 4rem;">
+          <h2 class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            தசா புக்தி<span class="en-text"> (Dasa Bhuktis)</span>
+          </h2>
+          <div class="detail-block">
+            <h3>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              விம்சோத்தரி தசா புக்தி காலங்கள்<span class="en-text"> (Vimshottari Dasa Bhukti Periods)</span>
+            </h3>
+            <p class="detail-desc en-text" style="margin-bottom: 1.5rem;">Vimshottari Dasa is a 120-year planetary cycle based on the moon's position at birth. Click on any main Dasa period to expand and view its 9 sub-Bhukti periods.</p>
+            <div id="dasa-list-container" class="dasa-list">
+              <!-- Dynamic Dasa list goes here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 3: Ashtakavarga -->
+        <div id="panel-ashtakavarga" class="main-tab-panel" style="margin-bottom: 4rem;">
+          <h2 class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <line x1="3" y1="9" x2="21" y2="9"/>
+              <line x1="3" y1="15" x2="21" y2="15"/>
+              <line x1="12" y1="3" x2="12" y2="21"/>
+            </svg>
+            அஷ்டகவர்க்கம்<span class="en-text"> (Ashtakavarga)</span>
+          </h2>
+          <div class="results-layout">
+            <div class="planets-table-wrapper" style="margin-top: 0;">
+              <div class="table-header">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="3" y1="9" x2="21" y2="9"/>
+                  <line x1="3" y1="15" x2="21" y2="15"/>
+                  <line x1="12" y1="3" x2="12" y2="21"/>
+                </svg>
+                சர்வாஷ்டக வர்க்கப் புள்ளிகள்<span class="en-text"> (Sarvashtakavarga Bindu Table)</span>
+              </div>
+              <div class="planets-table-container">
+                <table class="planets-table" id="ashtakavarga-table" style="font-size: 0.8rem;">
+                  <thead>
+                    <!-- Dynamic Headers go here -->
+                  </thead>
+                  <tbody id="ashtakavarga-table-body">
+                    <!-- Dynamic Rows go here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            <!-- Mini SAV Chart -->
+            <div class="chart-container-wrapper" style="width: 100%;">
+              <h3 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <circle cx="12" cy="12" r="10"/>
+                  <circle cx="12" cy="12" r="4"/>
+                </svg>
+                சர்வாஷ்டக சக்கரம்<span class="en-text"> (SAV Chart)</span>
+              </h3>
+              <div class="chart-container" style="min-height: 250px; padding: 1rem;">
+                <svg id="sav-chart-svg" class="chart-svg" viewBox="0 0 200 200" style="max-width: 280px;">
+                  <!-- Dynamic SAV grid goes here -->
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 4: Placements & Aspects -->
+        <div id="panel-aspects" class="main-tab-panel" style="margin-bottom: 4rem;">
+          <h2 class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+              <polyline points="2 17 12 22 22 17"/>
+              <polyline points="2 12 12 17 22 12"/>
+            </svg>
+            கிரக சம்பந்தம் & பலன்கள்<span class="en-text"> (Placements & Aspects)</span>
+          </h2>
+          <div class="results-layout">
+            <!-- Aspects List -->
+            <div class="detail-block">
+              <h3>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                  <polyline points="2 17 12 22 22 17"/>
+                  <polyline points="2 12 12 17 22 12"/>
+                </svg>
+                கிரக சேர்க்கை மற்றும் பார்வைகள்<span class="en-text"> (Conjunctions & Aspects)</span>
+              </h3>
+              <div id="aspects-list-container" class="detail-list" style="margin-top: 1rem;">
+                <!-- Dynamic aspects go here -->
+              </div>
+            </div>
+            
+            <!-- Placements Readings -->
+            <div class="detail-block">
+              <h3>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 16v-4"/>
+                  <path d="M12 8h.01"/>
+                </svg>
+                கிரக பலன்கள்<span class="en-text"> (Planetary Placement Readings)</span>
+              </h3>
+              <div id="placements-list-container" style="margin-top: 1rem; max-height: 600px; overflow-y: auto; padding-right: 0.5rem;">
+                <!-- Dynamic readings go here -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 5: House Readings -->
+        <div id="panel-houses" class="main-tab-panel" style="margin-bottom: 4rem;">
+          <h2 class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            பாவ பலன்கள்<span class="en-text"> (House Readings)</span>
+          </h2>
+          <div class="details-panel" style="grid-template-columns: 1fr;">
+            <div class="detail-block">
+              <h3>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                  <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                வீடுகளின் விவரங்களும் பொதுப் பலன்களும்<span class="en-text"> (12 House Significations & Lord Readings)</span>
+              </h3>
+              <p class="detail-desc en-text" style="margin-bottom: 1.5rem;">Each house represents specific aspects of life. Below are the general significations of each house and the dynamic reading of where its lord is placed.</p>
+              <div id="houses-list-container" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <!-- Dynamic house lord readings go here -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 6: Comprehensive Overall Report / ஒட்டுமொத்த விரிவான அறிக்கை -->
+        <div id="panel-comprehensive-report" class="main-tab-panel" style="margin-bottom: 4rem;">
+          <h2 class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            ஒட்டுமொத்த விரிவான அறிக்கை<span class="en-text"> (Comprehensive Overall Report)</span>
+          </h2>
+          <div class="details-panel">
+            <!-- Career block -->
+            <div class="detail-block" style="margin-bottom: 1.5rem;">
+              <h3 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+                வேலை / தொழில்<span class="en-text"> (Job & Career)</span>
+              </h3>
+              <p class="detail-desc" id="report-career-desc" style="line-height: 1.6; font-size: 0.9rem; color: var(--text-secondary);">
+                <!-- Dynamic prediction goes here -->
+              </p>
+            </div>
+
+            <!-- Education block -->
+            <div class="detail-block" style="margin-bottom: 1.5rem;">
+              <h3 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                கல்வி<span class="en-text"> (Education)</span>
+              </h3>
+              <p class="detail-desc" id="report-education-desc" style="line-height: 1.6; font-size: 0.9rem; color: var(--text-secondary);">
+                <!-- Dynamic prediction goes here -->
+              </p>
+            </div>
+
+            <!-- Married Life block -->
+            <div class="detail-block" style="margin-bottom: 1.5rem;">
+              <h3 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                திருமணம் / திருமண வாழ்க்கை<span class="en-text"> (Marriage & Married Life)</span>
+              </h3>
+              <p class="detail-desc" id="report-marriage-desc" style="line-height: 1.6; font-size: 0.9rem; color: var(--text-secondary);">
+                <!-- Dynamic prediction goes here -->
+              </p>
+            </div>
+
+            <!-- Health block -->
+            <div class="detail-block" style="margin-bottom: 1.5rem;">
+              <h3 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+                ஆரோக்கியம்<span class="en-text"> (Health)</span>
+              </h3>
+              <p class="detail-desc" id="report-health-desc" style="line-height: 1.6; font-size: 0.9rem; color: var(--text-secondary);">
+                <!-- Dynamic prediction goes here -->
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

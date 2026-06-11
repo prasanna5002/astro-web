@@ -1,0 +1,1494 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Hind+Madurai:wght@400;600;700&display=swap');
+
+:root {
+  --bg-color: #05060f;
+  --bg-gradient: radial-gradient(circle at 50% 50%, #12142e 0%, #060713 100%);
+  --panel-bg: rgba(13, 16, 37, 0.65);
+  --panel-border: rgba(229, 193, 88, 0.18);
+  --panel-border-hover: rgba(229, 193, 88, 0.35);
+  
+  --primary-gold: #e5c158;
+  --primary-gold-rgb: 229, 193, 88;
+  --gold-glow: 0 0 20px rgba(229, 193, 88, 0.25);
+  
+  --cosmic-purple: #9d4edd;
+  --cosmic-purple-rgb: 157, 78, 221;
+  --cosmic-glow: 0 0 25px rgba(157, 78, 221, 0.3);
+  
+  --text-primary: #f8f9fa;
+  --text-secondary: #a0a5c0;
+  --text-muted: #626784;
+  
+  --font-astrology: 'Outfit', 'Inter', sans-serif;
+  --font-tamil: 'Hind Madurai', 'Mukta Malar', sans-serif;
+  
+  --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --radius-lg: 20px;
+  --radius-md: 12px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-astrology);
+  background: var(--bg-color);
+  background-image: var(--bg-gradient);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+  line-height: 1.5;
+}
+
+/* Starry Sky Canvas Background */
+#stars-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.app-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+}
+
+/* Header Styling */
+header {
+  text-align: center;
+  margin-bottom: 3rem;
+  animation: fadeInDown 1s var(--transition-smooth);
+}
+
+.logo-icon {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 1rem;
+  filter: drop-shadow(var(--gold-glow));
+  animation: spinSlow 30s linear infinite;
+}
+
+h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #fff 30%, var(--primary-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  font-weight: 300;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Main Layout Grid */
+.main-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+/* Glassmorphic Panel Styling */
+.glass-panel {
+  background: var(--panel-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--cosmic-purple), var(--primary-gold));
+  opacity: 0.8;
+}
+
+.glass-panel:hover {
+  border-color: var(--panel-border-hover);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5), 
+              0 0 30px rgba(157, 78, 221, 0.05),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.panel-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 1rem;
+  color: var(--primary-gold);
+}
+
+/* Input Fields & Forms */
+.form-group {
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+input, select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  color: var(--text-primary);
+  font-family: var(--font-astrology);
+  font-size: 1rem;
+  transition: var(--transition-smooth);
+}
+
+input:focus, select:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--cosmic-purple);
+  box-shadow: 0 0 15px rgba(157, 78, 221, 0.2);
+}
+
+/* Autocomplete Suggestion Box */
+.autocomplete-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #0d1025;
+  border: 1px solid rgba(157, 78, 221, 0.3);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.suggestion-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.suggestion-item:hover {
+  background: rgba(157, 78, 221, 0.25);
+  color: var(--primary-gold);
+}
+
+/* Form Row Grid */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.btn-icon-wrapper {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Buttons */
+button {
+  width: 100%;
+  background: linear-gradient(135deg, var(--cosmic-purple) 0%, #7b2cbf 100%);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  box-shadow: var(--cosmic-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(157, 78, 221, 0.5);
+  background: linear-gradient(135deg, #ae63e4 0%, #8338ec 100%);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button.secondary-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+}
+
+button.secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+}
+
+/* Results Section Layout */
+.results-wrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  animation: fadeIn 0.8s var(--transition-smooth);
+}
+
+.results-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Info Cards showing Rasi, Natchthiram, Lagna */
+.astrology-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.info-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  text-align: center;
+  transition: var(--transition-smooth);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.info-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-md);
+  padding: 1.5px;
+  background: linear-gradient(135deg, rgba(229,193,88,0.4), rgba(157,78,221,0.4));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.4;
+  transition: var(--transition-smooth);
+}
+
+.info-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-4px);
+}
+
+.info-card:hover::before {
+  opacity: 0.85;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.info-value-en {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--primary-gold);
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.01em;
+}
+
+.info-value-ta {
+  font-family: var(--font-tamil);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.info-subtext {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.4rem;
+}
+
+/* Tabs for Chart Selection */
+.chart-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.75rem;
+  width: 100%;
+}
+
+.chart-tab {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: none;
+  width: auto;
+  border-radius: var(--radius-md);
+  transition: var(--transition-smooth);
+}
+
+.chart-tab:hover {
+  color: var(--primary-gold);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: none;
+}
+
+.chart-tab.active {
+  color: #05060f;
+  background: var(--primary-gold);
+  border-color: var(--primary-gold);
+  box-shadow: var(--gold-glow);
+}
+
+/* South Indian Rasi Chart Styling */
+.chart-container-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chart-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  width: 100%;
+  min-height: 400px;
+}
+
+.chart-svg {
+  width: 100%;
+  max-width: 380px;
+  height: auto;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.4));
+}
+
+.chart-grid {
+  stroke: rgba(229, 193, 88, 0.3);
+  stroke-width: 1.5;
+}
+
+.chart-house-bg {
+  fill: rgba(13, 16, 37, 0.45);
+  transition: var(--transition-smooth);
+}
+
+.chart-house:hover .chart-house-bg {
+  fill: rgba(157, 78, 221, 0.1);
+  stroke: var(--primary-gold);
+}
+
+.chart-house-text {
+  fill: var(--text-muted);
+  font-size: 8px;
+  font-weight: 500;
+  font-family: var(--font-astrology);
+}
+
+.chart-house:hover .chart-house-text {
+  fill: var(--text-secondary);
+}
+
+.chart-center-bg {
+  fill: rgba(6, 7, 19, 0.85);
+  stroke: rgba(229, 193, 88, 0.4);
+  stroke-width: 1.5;
+}
+
+.chart-center-text {
+  fill: var(--primary-gold);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-tamil);
+  text-anchor: middle;
+}
+
+/* Chart Occupant Labels */
+.chart-occupant-lagna {
+  fill: #ff3366;
+  font-size: 8px;
+  font-weight: 850;
+  filter: drop-shadow(0 0 2px rgba(255, 51, 102, 0.5));
+}
+
+.chart-occupant-moon {
+  fill: #00f0ff;
+  font-size: 8px;
+  font-weight: 850;
+  filter: drop-shadow(0 0 2px rgba(0, 240, 255, 0.5));
+}
+
+.chart-occupant-planet {
+  fill: var(--primary-gold);
+  font-size: 7.5px;
+  font-weight: 600;
+}
+
+.chart-occupant-node {
+  fill: #ae63e4;
+  font-size: 7.5px;
+  font-weight: 600;
+}
+
+.chart-occupant-mandi {
+  fill: #ff9f1c;
+  font-size: 7.5px;
+  font-weight: 600;
+  filter: drop-shadow(0 0 2px rgba(255, 159, 28, 0.4));
+}
+
+/* Planets Table Container */
+.planets-table-wrapper {
+  grid-column: 1 / -1;
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.table-header {
+  font-size: 1.15rem;
+  color: var(--primary-gold);
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.planets-table-container {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.planets-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.planets-table th, .planets-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+}
+
+.planets-table th {
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.planets-table tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.planet-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.badge-planet {
+  background: rgba(229, 193, 88, 0.1);
+  color: var(--primary-gold);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: var(--font-tamil);
+}
+
+.badge-lagna {
+  background: rgba(255, 51, 102, 0.1);
+  color: #ff3366;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: var(--font-tamil);
+}
+
+.badge-node {
+  background: rgba(174, 99, 228, 0.1);
+  color: #c084fc;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: var(--font-tamil);
+}
+
+.badge-mandi {
+  background: rgba(255, 159, 28, 0.1);
+  color: #ff9f1c;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: var(--font-tamil);
+}
+
+/* Details Panel Styling */
+.details-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.detail-block {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+}
+
+.detail-block h3 {
+  font-size: 1.15rem;
+  color: var(--primary-gold);
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.detail-list {
+  list-style: none;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.65rem 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.03);
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-key {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.detail-val {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.detail-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-top: 0.5rem;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Welcome Screen Styling */
+.welcome-screen {
+  text-align: center;
+  padding: 4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcome-icon {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 1.5rem;
+  filter: drop-shadow(0 0 25px rgba(229, 193, 88, 0.3));
+  opacity: 0.85;
+}
+
+.welcome-screen h2 {
+  font-size: 1.8rem;
+  color: var(--primary-gold);
+  margin-bottom: 0.75rem;
+}
+
+.welcome-screen p {
+  color: var(--text-secondary);
+  max-width: 450px;
+  line-height: 1.6;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 7, 19, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(229, 193, 88, 0.1);
+  border-top-color: var(--primary-gold);
+  border-radius: 50%;
+  animation: spinSlow 1s linear infinite;
+}
+
+.loading-text {
+  color: var(--primary-gold);
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+}
+
+/* Main Tabs Styling */
+.main-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 2rem;
+  padding-bottom: 0.5rem;
+  overflow-x: auto;
+  width: 100%;
+}
+
+.main-tab {
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  width: auto;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  border: none;
+  box-shadow: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  white-space: nowrap;
+}
+
+.main-tab:hover {
+  color: var(--primary-gold);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.main-tab.active {
+  color: var(--primary-gold);
+  border-bottom: 3px solid var(--primary-gold);
+  background: rgba(229, 193, 88, 0.08);
+  filter: drop-shadow(var(--gold-glow));
+}
+
+.main-tab-panel {
+  display: block;
+  animation: fadeIn 0.6s var(--transition-smooth);
+}
+
+.main-tab-panel.active {
+  display: block;
+}
+
+.section-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--primary-gold);
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(229, 193, 88, 0.25);
+  padding-bottom: 0.65rem;
+  font-family: var(--font-tamil), var(--font-astrology);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-shadow: var(--gold-glow);
+}
+
+/* Vimshottari Dasa List Styles */
+.dasa-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dasa-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: var(--transition-smooth);
+}
+
+.dasa-item:hover {
+  border-color: rgba(229, 193, 88, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.dasa-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.dasa-name {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.dasa-badge {
+  background: rgba(229, 193, 88, 0.1);
+  color: var(--primary-gold);
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-family: var(--font-tamil);
+}
+
+.dasa-dates {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.dasa-arrow {
+  color: var(--text-muted);
+  transition: var(--transition-smooth);
+}
+
+.dasa-item.expanded .dasa-arrow {
+  transform: rotate(180deg);
+  color: var(--primary-gold);
+}
+
+.dasa-bhuktis {
+  display: none;
+  border-top: 1px dashed rgba(255, 255, 255, 0.05);
+  padding: 1rem 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.dasa-item.expanded .dasa-bhuktis {
+  display: block;
+  animation: fadeIn 0.4s var(--transition-smooth);
+}
+
+.bhukti-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .bhukti-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .bhukti-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bhukti-item {
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  text-align: center;
+}
+
+.bhukti-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.bhukti-dates {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Ashtakavarga points color highlighting */
+.bindu-weak {
+  color: #ff5555;
+  font-weight: 700;
+  background: rgba(255, 85, 85, 0.05);
+}
+
+.bindu-medium {
+  color: var(--text-secondary);
+}
+
+.bindu-strong {
+  color: #55ff55;
+  font-weight: 700;
+  background: rgba(85, 255, 85, 0.05);
+  text-shadow: 0 0 10px rgba(85, 255, 85, 0.3);
+}
+
+.bindu-total {
+  font-weight: 800;
+  font-size: 0.95rem;
+  background: rgba(229, 193, 88, 0.08);
+}
+
+/* ==========================================
+   CUSTOM PRINT STYLES
+   ========================================== */
+@media print {
+  /* 1. Reset page background and text contrast */
+  body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #000000 !important;
+    font-family: Arial, sans-serif !important;
+  }
+  
+  /* Reset all containers */
+  .app-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .main-grid {
+    display: block !important;
+  }
+  
+  /* 2. Hide screen-only components */
+  #stars-canvas,
+  header,
+  #input-panel,
+  .main-tabs,
+  .chart-tabs,
+  #print-report-btn,
+  #export-word-btn,
+  .loading-overlay,
+  #welcome-view,
+  .dasa-arrow {
+    display: none !important;
+  }
+  
+  /* 3. Make all panels visible and insert page breaks */
+  .main-tab-panel {
+    display: block !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 0 2rem 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  
+  /* Disable hover effects & transitions in print */
+  * {
+    transition: none !important;
+    animation: none !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+  }
+  
+  .glass-panel {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+  
+  .glass-panel::before {
+    display: none !important;
+  }
+  
+  /* 4. Formatting panels for printing */
+  .results-layout {
+    display: block !important; /* Stack columns vertically on print */
+  }
+  
+  .detail-block {
+    background: transparent !important;
+    border: 1px solid #ddd !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    margin-bottom: 1.5rem !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  
+  .detail-block h3 {
+    color: #000000 !important;
+    border-bottom: 1px solid #666 !important;
+    padding-bottom: 0.25rem !important;
+    margin-bottom: 0.75rem !important;
+    font-size: 1.1rem !important;
+  }
+  
+  .detail-item {
+    border-bottom: 1px dashed #ccc !important;
+    padding: 0.5rem 0 !important;
+  }
+  
+  .detail-key {
+    color: #333333 !important;
+  }
+  
+  .detail-val {
+    color: #000000 !important;
+  }
+  
+  .detail-desc {
+    color: #333333 !important;
+  }
+  
+  /* Tables formatting */
+  .planets-table-wrapper {
+    background: transparent !important;
+    border: 1px solid #ddd !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    margin-top: 1.5rem !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  
+  .table-header {
+    color: #000000 !important;
+    border-bottom: 1px solid #666 !important;
+    font-size: 1.1rem !important;
+  }
+  
+  .planets-table th {
+    background: #f5f5f5 !important;
+    color: #000000 !important;
+    border-bottom: 2px solid #333 !important;
+    font-size: 0.8rem !important;
+  }
+  
+  .planets-table td {
+    border-bottom: 1px solid #ddd !important;
+    color: #000000 !important;
+  }
+  
+  /* Expand Vimshottari Dasas */
+  .dasa-bhuktis {
+    display: block !important;
+    background: #fafafa !important;
+    border-top: 1px dashed #ccc !important;
+  }
+  
+  .bhukti-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 1rem !important;
+  }
+  
+  .bhukti-item {
+    background: #ffffff !important;
+    border: 1px solid #eee !important;
+  }
+  
+  .bhukti-name {
+    color: #000000 !important;
+  }
+  
+  .bhukti-dates {
+    color: #555555 !important;
+  }
+  
+  .dasa-item {
+    border: 1px solid #ccc !important;
+    background: #ffffff !important;
+  }
+  
+  .dasa-badge {
+    background: #f0f0f0 !important;
+    color: #000000 !important;
+    border: 1px solid #ccc !important;
+  }
+  
+  .dasa-dates {
+    color: #333333 !important;
+  }
+  
+  /* Ashtakavarga table print styles */
+  .bindu-weak {
+    color: #c00000 !important;
+    background: #ffe6e6 !important;
+  }
+  
+  .bindu-strong {
+    color: #008000 !important;
+    background: #e6ffe6 !important;
+    text-shadow: none !important;
+  }
+  
+  .bindu-total {
+    background: #f0f0f0 !important;
+    font-weight: 800 !important;
+  }
+  
+  /* Aspects nature formatting */
+  .detail-val span {
+    font-weight: bold !important;
+  }
+  
+  /* SVG print coloring rules */
+  .chart-house-bg {
+    stroke: #555555 !important;
+    fill: #ffffff !important;
+  }
+  
+  .chart-center-bg {
+    fill: #f5f5f5 !important;
+    stroke: #555555 !important;
+  }
+  
+  .chart-center-text {
+    fill: #000000 !important;
+  }
+  
+  .chart-house-text {
+    fill: #444444 !important;
+  }
+  
+  /* High-contrast colors for SVG occupants */
+  .chart-occupant-lagna { fill: #b30000 !important; font-weight: bold !important; font-size: 8px !important; }
+  .chart-occupant-mandi { fill: #d35400 !important; font-weight: bold !important; font-size: 8px !important; }
+  .chart-occupant-node { fill: #5b2c90 !important; font-weight: bold !important; font-size: 8px !important; }
+  .chart-occupant-moon { fill: #004d99 !important; font-weight: bold !important; font-size: 8px !important; }
+  .chart-occupant-planet { fill: #1a252f !important; font-weight: bold !important; font-size: 8px !important; }
+  
+  /* Badge elements in tables */
+  .badge-planet { background: #f0f0f0 !important; color: #000 !important; border: 1px solid #ccc !important; }
+  .badge-lagna { background: #ffe6e6 !important; color: #b30000 !important; border: 1px solid #ffb3b3 !important; }
+  .badge-node { background: #f3e6ff !important; color: #5b2c90 !important; border: 1px solid #d9b3ff !important; }
+  .badge-mandi { background: #fff2e6 !important; color: #d35400 !important; border: 1px solid #ffd9b3 !important; }
+  
+  /* Print Only Dual Charts */
+  .chart-container-wrapper {
+    display: none !important;
+  }
+  .print-charts-container {
+    display: flex !important;
+    justify-content: space-around !important;
+    gap: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+    width: 100% !important;
+  }
+  .print-chart-box {
+    flex: 1 !important;
+    text-align: center !important;
+    max-width: 280px !important;
+  }
+  .print-chart-title {
+    color: #000000 !important;
+    font-size: 0.95rem !important;
+    margin-bottom: 0.5rem !important;
+    font-weight: 700 !important;
+  }
+  
+  /* 5. Custom print headers/footers */
+  .print-header {
+    display: block !important;
+    margin-bottom: 2rem !important;
+    padding-bottom: 1rem !important;
+    border-bottom: 2px solid #333333 !important;
+  }
+  
+  .print-header-branding {
+    text-align: center !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .print-header-branding h3 {
+    font-size: 1.3rem !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    font-family: var(--font-tamil), var(--font-astrology) !important;
+  }
+  
+  .print-header-brand-line {
+    height: 2px !important;
+    background: #333333 !important;
+    margin-top: 5px !important;
+  }
+  
+  .print-header-line-view {
+    text-align: center !important;
+    font-size: 0.85rem !important;
+    line-height: 1.5 !important;
+    color: #000000 !important;
+    margin-top: 0.5rem !important;
+  }
+  
+  .print-header-line {
+    margin-bottom: 0.25rem !important;
+  }
+
+  .print-footer {
+    display: block !important;
+    margin-top: 2rem !important;
+    padding-top: 1rem !important;
+    border-top: 2px solid #333333 !important;
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+  }
+  
+  .print-footer-brand-line {
+    height: 1px !important;
+    background: #dddddd !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .print-footer-line-view {
+    text-align: center !important;
+    font-size: 0.75rem !important;
+    color: #444444 !important;
+    line-height: 1.4 !important;
+  }
+
+  /* 6. Fix for scrolling containers clipping in print (e.g. கிரக பலன்கள்) */
+  #placements-list-container {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .planets-table-container,
+  .dasa-list,
+  .detail-list {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+/* ==========================================
+   LANGUAGE SELECTION STYLES (Screen & Print)
+   ========================================== */
+.ta-only-print {
+  display: none; /* Hidden by default on screen in Bilingual mode */
+}
+
+.print-only-page {
+  display: none; /* Hidden on screen by default */
+}
+
+.print-page-break {
+  display: none; /* Hidden on screen */
+}
+
+/* Tamil Selection */
+body.lang-select-ta .en-text,
+body.lang-select-ta .info-value-en,
+body.lang-select-ta .lang-en,
+body.lang-select-ta .lang-sep {
+  display: none !important;
+}
+body.lang-select-ta .ta-only-print {
+  display: inline !important;
+}
+body.lang-select-ta span.ta-only-print,
+body.lang-select-ta div.ta-only-print {
+  display: inline-block !important;
+}
+body.lang-select-ta h3.ta-only-print,
+body.lang-select-ta h4.ta-only-print {
+  display: block !important;
+}
+body.lang-select-ta .chart-center-text.ta-title {
+  transform: translateY(6px);
+}
+
+/* English Selection */
+body.lang-select-en .ta-only-print,
+body.lang-select-en .info-value-ta,
+body.lang-select-en .lang-ta,
+body.lang-select-en .lang-sep {
+  display: none !important;
+}
+body.lang-select-en .en-text {
+  display: inline !important;
+}
+body.lang-select-en span.en-text,
+body.lang-select-en div.en-text {
+  display: inline-block !important;
+}
+body.lang-select-en p.en-text {
+  display: block !important;
+}
+
+/* Print Overrides */
+@media print {
+  .lang-selector-container {
+    display: none !important;
+  }
+  
+  /* Show print-only pages */
+  .print-only-page {
+    display: block !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .print-page-break {
+    display: block !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  
+  /* Force language styles during print matching selected language */
+  body.lang-select-ta .en-text,
+  body.lang-select-ta .info-value-en,
+  body.lang-select-ta .lang-en,
+  body.lang-select-ta .lang-sep {
+    display: none !important;
+  }
+  body.lang-select-ta .ta-only-print {
+    display: inline !important;
+  }
+  body.lang-select-ta .chart-center-text.ta-title {
+    transform: translateY(6px);
+  }
+
+  body.lang-select-en .ta-only-print,
+  body.lang-select-en .info-value-ta,
+  body.lang-select-en .lang-ta,
+  body.lang-select-en .lang-sep {
+    display: none !important;
+  }
+  body.lang-select-en .en-text {
+    display: inline !important;
+  }
+}
+
+/* ==========================================
+   MOBILE & TABLET RESPONSIVENESS OVERRIDES
+   ========================================== */
+
+/* 1. Desktop Grid Enhancements (Screens > 768px / 992px) */
+@media (min-width: 769px) {
+  .astrology-summary {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 1.25rem !important;
+    flex-direction: row !important;
+  }
+}
+
+@media (min-width: 993px) {
+  .charts-stack {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 2rem !important;
+  }
+}
+
+/* 2. Tablet & Mobile Layout Scale (Screens <= 768px) */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 1.5rem 1rem !important;
+  }
+  
+  .glass-panel {
+    padding: 1.5rem !important;
+  }
+  
+  h1 {
+    font-size: 2.2rem !important;
+  }
+  
+  .subtitle {
+    font-size: 1rem !important;
+  }
+  
+  .logo-icon {
+    width: 60px !important;
+    height: 60px !important;
+  }
+  
+  .results-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 1rem !important;
+    text-align: center;
+  }
+  
+  .results-header h2 {
+    font-size: 1.35rem !important;
+    text-align: center;
+  }
+  
+  .results-header > div {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+  }
+  
+  .results-header .lang-selector-container {
+    justify-content: center !important;
+    width: 100% !important;
+  }
+  
+  .results-header button {
+    width: 100% !important;
+  }
+  
+  .planets-table th, .planets-table td {
+    padding: 0.5rem 0.65rem !important;
+    font-size: 0.8rem !important;
+  }
+  
+  .badge-planet, .badge-lagna, .badge-node, .badge-mandi {
+    padding: 0.15rem 0.35rem !important;
+    font-size: 0.7rem !important;
+  }
+  
+  #ashtakavarga-table th, #ashtakavarga-table td {
+    padding: 0.35rem 0.45rem !important;
+    font-size: 0.75rem !important;
+  }
+  
+  .planets-table-container {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .chart-container {
+    min-height: auto !important;
+    padding: 1rem !important;
+  }
+  
+  .dasa-header {
+    padding: 0.75rem 1.25rem !important;
+  }
+  
+  .dasa-name {
+    font-size: 1rem !important;
+  }
+  
+  .dasa-bhuktis {
+    padding: 0.75rem 1.25rem !important;
+  }
+  
+  .detail-block {
+    padding: 1rem !important;
+  }
+}
+
+/* 3. Mobile Form & Grid Overrides (Screens <= 600px) */
+@media (max-width: 600px) {
+  .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+}
+
+/* 4. Small Mobile Screen Padding (Screens <= 480px) */
+@media (max-width: 480px) {
+  .app-container {
+    padding: 1rem 0.5rem !important;
+  }
+  
+  .glass-panel {
+    padding: 1rem !important;
+    border-radius: var(--radius-md) !important;
+  }
+}
+
+
