@@ -1,34 +1,34 @@
 // Major Cities Database (Tamil Nadu, India, and Global)
 const CITIES = [
-  { name: "Chennai, Tamil Nadu, India", lat: 13.0827, lng: 80.2707, tz: 5.5 },
-  { name: "Coimbatore, Tamil Nadu, India", lat: 11.0168, lng: 76.9558, tz: 5.5 },
-  { name: "Madurai, Tamil Nadu, India", lat: 9.9252, lng: 78.1198, tz: 5.5 },
-  { name: "Tiruchirappalli (Trichy), Tamil Nadu, India", lat: 10.7905, lng: 78.7047, tz: 5.5 },
-  { name: "Salem, Tamil Nadu, India", lat: 11.6643, lng: 78.1460, tz: 5.5 },
-  { name: "Tirunelveli, Tamil Nadu, India", lat: 8.7139, lng: 77.7567, tz: 5.5 },
-  { name: "Vellore, Tamil Nadu, India", lat: 12.9165, lng: 79.1325, tz: 5.5 },
-  { name: "Thanjavur, Tamil Nadu, India", lat: 10.7870, lng: 79.1378, tz: 5.5 },
-  { name: "Thoothukudi (Tuticorin), Tamil Nadu, India", lat: 8.7642, lng: 78.1348, tz: 5.5 },
-  { name: "Nagercoil, Tamil Nadu, India", lat: 8.1833, lng: 77.4119, tz: 5.5 },
-  { name: "Kanchipuram, Tamil Nadu, India", lat: 12.8342, lng: 79.7036, tz: 5.5 },
-  { name: "Erode, Tamil Nadu, India", lat: 11.3410, lng: 77.7172, tz: 5.5 },
-  { name: "Tiruppur, Tamil Nadu, India", lat: 11.1085, lng: 77.3411, tz: 5.5 },
-  { name: "Dindigul, Tamil Nadu, India", lat: 10.3673, lng: 77.9803, tz: 5.5 },
-  { name: "Cuddalore, Tamil Nadu, India", lat: 11.7480, lng: 79.7714, tz: 5.5 },
-  { name: "Puducherry (Pondicherry), India", lat: 11.9416, lng: 79.8083, tz: 5.5 },
-  { name: "Bengaluru (Bangalore), Karnataka, India", lat: 12.9716, lng: 77.5946, tz: 5.5 },
-  { name: "Mumbai, Maharashtra, India", lat: 19.0760, lng: 72.8777, tz: 5.5 },
-  { name: "New Delhi, Delhi, India", lat: 28.6139, lng: 77.2090, tz: 5.5 },
-  { name: "Kolkata, West Bengal, India", lat: 22.5726, lng: 88.3639, tz: 5.5 },
-  { name: "Hyderabad, Telangana, India", lat: 17.3850, lng: 78.4867, tz: 5.5 },
-  { name: "Singapore", lat: 1.3521, lng: 103.8198, tz: 8.0 },
-  { name: "Kuala Lumpur, Malaysia", lat: 3.1390, lng: 101.6869, tz: 8.0 },
-  { name: "Colombo, Sri Lanka", lat: 6.9271, lng: 79.8612, tz: 5.5 },
-  { name: "London, United Kingdom", lat: 51.5074, lng: -0.1278, tz: 0.0 },
-  { name: "New York, USA", lat: 40.7128, lng: -74.0060, tz: -5.0 },
-  { name: "San Francisco, USA", lat: 37.7749, lng: -122.4194, tz: -8.0 },
-  { name: "Dubai, United Arab Emirates", lat: 25.2048, lng: 55.2708, tz: 4.0 },
-  { name: "Sydney, Australia", lat: -33.8688, lng: 151.2093, tz: 10.0 }
+  { name: "சென்னை, தமிழ்நாடு (Chennai)", lat: 13.0827, lng: 80.2707, tz: 5.5 },
+  { name: "கோயம்புத்தூர், தமிழ்நாடு (Coimbatore)", lat: 11.0168, lng: 76.9558, tz: 5.5 },
+  { name: "மதுரை, தமிழ்நாடு (Madurai)", lat: 9.9252, lng: 78.1198, tz: 5.5 },
+  { name: "திருச்சிராப்பள்ளி, தமிழ்நாடு (Trichy)", lat: 10.7905, lng: 78.7047, tz: 5.5 },
+  { name: "சேலம், தமிழ்நாடு (Salem)", lat: 11.6643, lng: 78.1460, tz: 5.5 },
+  { name: "திருநெல்வேலி, தமிழ்நாடு (Tirunelveli)", lat: 8.7139, lng: 77.7567, tz: 5.5 },
+  { name: "வேலூர், தமிழ்நாடு (Vellore)", lat: 12.9165, lng: 79.1325, tz: 5.5 },
+  { name: "தஞ்சாவூர், தமிழ்நாடு (Thanjavur)", lat: 10.7870, lng: 79.1378, tz: 5.5 },
+  { name: "தூத்துக்குடி, தமிழ்நாடு (Thoothukudi)", lat: 8.7642, lng: 78.1348, tz: 5.5 },
+  { name: "நாகர்கோவில், தமிழ்நாடு (Nagercoil)", lat: 8.1833, lng: 77.4119, tz: 5.5 },
+  { name: "காஞ்சிபுரம், தமிழ்நாடு (Kanchipuram)", lat: 12.8342, lng: 79.7036, tz: 5.5 },
+  { name: "ஈரோடு, தமிழ்நாடு (Erode)", lat: 11.3410, lng: 77.7172, tz: 5.5 },
+  { name: "திருப்பூர், தமிழ்நாடு (Tiruppur)", lat: 11.1085, lng: 77.3411, tz: 5.5 },
+  { name: "திண்டுக்கல், தமிழ்நாடு (Dindigul)", lat: 10.3673, lng: 77.9803, tz: 5.5 },
+  { name: "கடலூர், தமிழ்நாடு (Cuddalore)", lat: 11.7480, lng: 79.7714, tz: 5.5 },
+  { name: "புதுச்சேரி (Puducherry)", lat: 11.9416, lng: 79.8083, tz: 5.5 },
+  { name: "பெங்களூரு, கர்நாடகா (Bengaluru)", lat: 12.9716, lng: 77.5946, tz: 5.5 },
+  { name: "மும்பை, மகாராஷ்டிரா (Mumbai)", lat: 19.0760, lng: 72.8777, tz: 5.5 },
+  { name: "புது தில்லி (New Delhi)", lat: 28.6139, lng: 77.2090, tz: 5.5 },
+  { name: "கொல்கத்தா, மேற்கு வங்கம் (Kolkata)", lat: 22.5726, lng: 88.3639, tz: 5.5 },
+  { name: "ஐதராபாத், தெலுங்கானா (Hyderabad)", lat: 17.3850, lng: 78.4867, tz: 5.5 },
+  { name: "சிங்கப்பூர் (Singapore)", lat: 1.3521, lng: 103.8198, tz: 8.0 },
+  { name: "கோலாலம்பூர், மலேசியா (Kuala Lumpur)", lat: 3.1390, lng: 101.6869, tz: 8.0 },
+  { name: "கொழும்பு, இலங்கை (Colombo)", lat: 6.9271, lng: 79.8612, tz: 5.5 },
+  { name: "லண்டன், ஐக்கிய இராச்சியம் (London)", lat: 51.5074, lng: -0.1278, tz: 0.0 },
+  { name: "நியூயார்க், அமெரிக்கா (New York)", lat: 40.7128, lng: -74.0060, tz: -5.0 },
+  { name: "சான் பிரான்சிஸ்கோ, அமெரிக்கா (San Francisco)", lat: 37.7749, lng: -122.4194, tz: -8.0 },
+  { name: "துபாய், ஐக்கிய அரபு அமீரகம் (Dubai)", lat: 25.2048, lng: 55.2708, tz: 4.0 },
+  { name: "சிட்னி, ஆஸ்திரேலியா (Sydney)", lat: -33.8688, lng: 151.2093, tz: 10.0 }
 ];
 
 // Rasis Reference Data
@@ -118,9 +118,8 @@ window.addEventListener("DOMContentLoaded", () => {
   setDefaultDateTime();
   loadAstrologerDetails();
   
-  // Load saved language selection
-  const savedLang = localStorage.getItem("report_lang") || "bi";
-  changeLanguage(savedLang);
+  // தமிழ் மட்டுமே
+  changeLanguage("ta");
   
   // Check for saved Google Maps API key
   const savedKey = localStorage.getItem("gmaps_api_key");
@@ -344,12 +343,12 @@ function getCurrentLocation() {
   const searchInput = document.getElementById("birth-location");
   
   if (!navigator.geolocation) {
-    alert("Geolocation is not supported by your browser.");
+    alert("உங்கள் உலாவியில் இருப்பிடக் கண்டறிதல் ஆதரிக்கப்படவில்லை.");
     return;
   }
-  
+
   gpsBtn.disabled = true;
-  gpsBtn.textContent = "Locating...";
+  gpsBtn.textContent = "தேடுகிறது...";
   
   navigator.geolocation.getCurrentPosition(
     (position) => {
@@ -358,7 +357,7 @@ function getCurrentLocation() {
       
       latInput.value = lat.toFixed(4);
       lngInput.value = lng.toFixed(4);
-      searchInput.value = `Current Location (${lat.toFixed(2)}°, ${lng.toFixed(2)}°)`;
+      searchInput.value = `தற்போதைய இருப்பிடம் (${lat.toFixed(2)}°, ${lng.toFixed(2)}°)`;
       
       // Auto-detect timezone offset in hours
       const offsetMinutes = new Date().getTimezoneOffset();
@@ -373,18 +372,18 @@ function getCurrentLocation() {
           <path d="M12 2a8 8 0 0 1 8 8c0 5.25-8 12-8 12S4 15.25 4 10a8 8 0 0 1 8-8z"/>
           <circle cx="12" cy="10" r="3"/>
         </svg>
-        My Location
+        எனது இருப்பிடம்
       `;
     },
     (error) => {
-      alert("Unable to retrieve your location: " + error.message);
+      alert("உங்கள் இருப்பிடத்தைப் பெற இயலவில்லை: " + error.message);
       gpsBtn.disabled = false;
       gpsBtn.innerHTML = `
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M12 2a8 8 0 0 1 8 8c0 5.25-8 12-8 12S4 15.25 4 10a8 8 0 0 1 8-8z"/>
           <circle cx="12" cy="10" r="3"/>
         </svg>
-        My Location
+        எனது இருப்பிடம்
       `;
     }
   );
@@ -435,12 +434,11 @@ function calculateAstrology(event) {
       const transitAstroTime = Astronomy.MakeTime(now);
       
       // Current local time details at birth place for transit
-      const localTransitMs = now.getTime() + (tzVal * 3600000) + (now.getTimezoneOffset() * 60000);
-      const localTransitDate = new Date(localTransitMs);
-      const tYear = localTransitDate.getFullYear();
-      const tMonth = localTransitDate.getMonth() + 1;
-      const tDay = localTransitDate.getDate();
-      const tWeekday = localTransitDate.getDay();
+      const localTransitDate = new Date(now.getTime() + (tzVal * 3600000));
+      const tYear = localTransitDate.getUTCFullYear();
+      const tMonth = localTransitDate.getUTCMonth() + 1;
+      const tDay = localTransitDate.getUTCDate();
+      const tWeekday = localTransitDate.getUTCDay();
       
       const transitData = calculateAllPositions(transitAstroTime, latVal, lngVal, tzVal, now, tYear, tMonth, tDay, tWeekday);
       
@@ -468,7 +466,7 @@ function calculateAstrology(event) {
       
     } catch (err) {
       console.error(err);
-      alert("Error performing calculations. Please ensure all details are correct.");
+      alert("கணிப்பில் பிழை ஏற்பட்டது. அனைத்து விவரங்களும் சரியாக உள்ளனவா எனச் சரிபார்க்கவும்.");
     } finally {
       loading.style.display = "none";
     }
@@ -638,26 +636,6 @@ function calculateAllPositions(astroTime, latVal, lngVal, tzVal, birthUtcDate, y
   };
 }
 
-// Tab switcher for charts
-function switchChartTab(tab) {
-  if (!currentHoroscopeData) return;
-  currentHoroscopeData.activeChart = tab;
-  
-  const tabs = ["D1", "D9", "D3", "Transit"];
-  tabs.forEach(t => {
-    const btn = document.getElementById(`tab-${t.toLowerCase()}`);
-    if (btn) {
-      if (t === tab) {
-        btn.classList.add("active");
-      } else {
-        btn.classList.remove("active");
-      }
-    }
-  });
-  
-  renderChartAndTable();
-}
-
 // Render chart SVG and planets table
 function renderChartAndTable() {
   if (!currentHoroscopeData) return;
@@ -670,6 +648,7 @@ function renderChartAndTable() {
   renderAspectsAndReadings();
   renderHouseReadings();
   renderComprehensiveReport();
+  if (typeof renderVakyaPanchangam === "function") renderVakyaPanchangam();
   populatePrintHeadersAndFooters();
 }
 
@@ -700,8 +679,10 @@ function getRasiInfo(longitude) {
 
 // Get nakshatra info for a longitude
 function getNakshatraInfo(longitude) {
-  const nakIndex = Math.floor(longitude / 13.33333333) % 27;
-  const padaIndex = Math.floor((longitude % 13.33333333) / 3.33333333) + 1;
+  const NAK_SIZE = 360 / 27;
+  const PADA_SIZE = NAK_SIZE / 4;
+  const nakIndex = Math.floor(longitude / NAK_SIZE) % 27;
+  const padaIndex = Math.floor((longitude % NAK_SIZE) / PADA_SIZE) + 1;
   const nak = NAKSHATRAS[nakIndex];
   return {
     nameEn: nak.nameEn,
@@ -729,7 +710,7 @@ function updateUIFields(data, lngVal, birthDate) {
   const nak = NAKSHATRAS[nakInfo.index];
   document.getElementById("nakshatra-value-en").textContent = nakInfo.nameEn;
   document.getElementById("nakshatra-value-ta").textContent = nakInfo.nameTa;
-  document.getElementById("nakshatra-pada").innerHTML = `<span class="lang-en">Pada ${nakInfo.pada}</span><span class="lang-sep"> / </span><span class="lang-ta">பாதம் ${nakInfo.pada}</span>`;
+  document.getElementById("nakshatra-pada").innerHTML = `<span class="lang-ta">பாதம் ${nakInfo.pada}</span>`;
   
   // B. Calculated Details Table
   document.getElementById("val-julian-date").textContent = data.jd.toFixed(5);
@@ -816,7 +797,7 @@ function renderChartSVG(svg, chartType) {
       if (chartType === "D1" || chartType === "Transit") {
         pSignIdx = Math.floor(lon / 30) % 12;
       } else if (chartType === "D9") {
-        pSignIdx = Math.floor(lon / 3.33333333) % 12;
+        pSignIdx = Math.floor(lon / (30 / 9)) % 12;
       } else if (chartType === "D3") {
         const rasi = Math.floor(lon / 30) % 12;
         const deg = lon % 30;
@@ -827,7 +808,8 @@ function renderChartSVG(svg, chartType) {
       
       if (pSignIdx === signIdx) {
         occupants.push({
-          label: `${planet.shortTa} (${planet.shortEn})`,
+          label: planet.shortTa,
+          title: planet.nameTa,
           type: planet.type,
           key: planet.key
         });
@@ -861,10 +843,10 @@ function renderChartSVG(svg, chartType) {
         }
       }
       
-      occText.textContent = occ.label.split(' ')[0];
-      
+      occText.textContent = occ.label;
+
       const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
-      title.textContent = occ.label;
+      title.textContent = occ.title;
       occText.appendChild(title);
       
       group.appendChild(occText);
@@ -970,7 +952,7 @@ function populatePlanetsTable(tbody, type) {
     if (type === "D1" || type === "Transit") {
       rasiIdx = Math.floor(lon / 30) % 12;
     } else if (type === "D9") {
-      rasiIdx = Math.floor(lon / 3.33333333) % 12;
+      rasiIdx = Math.floor(lon / (30 / 9)) % 12;
     } else if (type === "D3") {
       const rasi = Math.floor(lon / 30) % 12;
       const deg = lon % 30;
@@ -1020,18 +1002,18 @@ function toggleSettings() {
 function saveApiKey() {
   const key = document.getElementById("gmaps-api-key").value.trim();
   if (!key) {
-    alert("Please enter a valid Google Maps API Key.");
+    alert("சரியான கூகுள் மேப்ஸ் API சாவியை உள்ளிடவும்.");
     return;
   }
   localStorage.setItem("gmaps_api_key", key);
-  alert("Google Maps API Key saved! The page will now reload to apply settings.");
+  alert("கூகுள் மேப்ஸ் API சாவி சேமிக்கப்பட்டது! அமைப்புகள் செயல்பட பக்கம் மீண்டும் ஏற்றப்படும்.");
   location.reload();
 }
 
 function clearApiKey() {
   localStorage.removeItem("gmaps_api_key");
   document.getElementById("gmaps-api-key").value = "";
-  alert("Google Maps API Key cleared! The page will now reload to apply fallback geocoding.");
+  alert("கூகுள் மேப்ஸ் API சாவி அழிக்கப்பட்டது! இலவச இருப்பிடத் தேடல் செயல்பட பக்கம் மீண்டும் ஏற்றப்படும்.");
   location.reload();
 }
 
@@ -1103,7 +1085,7 @@ function fetchGoogleTimezone(lat, lng, apiKey) {
 
 // Tab switcher for main tabs
 function switchMainTab(tab) {
-  const panels = ["charts", "dasa", "ashtakavarga", "aspects", "houses"];
+  const panels = ["panchangam", "charts", "dasa", "ashtakavarga", "aspects", "houses", "comprehensive-report"];
   panels.forEach(p => {
     const panelEl = document.getElementById(`panel-${p}`);
     const tabEl = document.getElementById(`main-tab-${p}`);
@@ -1250,7 +1232,7 @@ function renderAshtakavarga() {
       <th><span class="lang-ta">கு</span><span class="lang-sep"> (</span><span class="lang-en">Ju</span><span class="lang-sep">)</span></th>
       <th><span class="lang-ta">சு</span><span class="lang-sep"> (</span><span class="lang-en">Ve</span><span class="lang-sep">)</span></th>
       <th><span class="lang-ta">சனி</span><span class="lang-sep"> (</span><span class="lang-en">Sa</span><span class="lang-sep">)</span></th>
-      <th>SAV</th>
+      <th>மொத்தம்</th>
     </tr>
   `;
   
@@ -1292,7 +1274,7 @@ function renderAshtakavarga() {
   const trTotal = document.createElement("tr");
   trTotal.className = "bindu-total";
   trTotal.innerHTML = `
-    <td>மொத்தம் (Total)</td>
+    <td>மொத்தம்<span class="en-text"> (Total)</span></td>
     <td>${colTotals.sun}</td>
     <td>${colTotals.moon}</td>
     <td>${colTotals.mars}</td>
@@ -1338,7 +1320,7 @@ function renderSAVChart(sav) {
     textLabel.setAttribute("x", x + 5);
     textLabel.setAttribute("y", y + 11);
     textLabel.setAttribute("class", "chart-house-text");
-    textLabel.textContent = `${rasi.shortTa} / ${rasi.shortEn}`;
+    textLabel.textContent = rasi.shortTa;
     group.appendChild(textLabel);
     
     const valText = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -1378,8 +1360,8 @@ function renderSAVChart(sav) {
   centerText2.setAttribute("x", cellSize * 2);
   centerText2.setAttribute("y", cellSize * 2 + 12);
   centerText2.setAttribute("class", "chart-center-text");
-  centerText2.setAttribute("style", "font-size: 10px; fill: var(--text-secondary); font-family: var(--font-astrology)");
-  centerText2.textContent = "SAV POINTS";
+  centerText2.setAttribute("style", "font-size: 10px; fill: var(--text-secondary); font-family: var(--font-tamil)");
+  centerText2.textContent = "புள்ளிகள்";
   centerGroup.appendChild(centerText2);
   
   svg.appendChild(centerGroup);
@@ -1405,7 +1387,8 @@ function renderDasaBhuktis() {
   const dasaNamesEn = { ketu: "Ketu", venus: "Venus", sun: "Sun", moon: "Moon", mars: "Mars", rahu: "Rahu", jupiter: "Jupiter", saturn: "Saturn", mercury: "Mercury" };
   
   const startDasaIndex = nakIdx % 9;
-  
+  const YEAR_MS = 365.25 * 24 * 60 * 60 * 1000;
+
   let currentMs = birthDate.getTime();
   let currentDasaIdx = startDasaIndex;
   
@@ -1420,11 +1403,11 @@ function renderDasaBhuktis() {
       durationYears = (1 - elapsedFraction) * years;
     }
     
-    const durationMs = durationYears * 365.25 * 24 * 60 * 60 * 1000;
+    const durationMs = durationYears * YEAR_MS;
     const endMs = currentMs + durationMs;
-    
-    const startDateStr = new Date(currentMs).toLocaleDateString("en-IN", { year: 'numeric', month: 'short', day: 'numeric' });
-    const endDateStr = new Date(endMs).toLocaleDateString("en-IN", { year: 'numeric', month: 'short', day: 'numeric' });
+
+    const startDateStr = new Date(currentMs).toLocaleDateString("ta-IN", { year: 'numeric', month: 'short', day: 'numeric' });
+    const endDateStr = new Date(endMs).toLocaleDateString("ta-IN", { year: 'numeric', month: 'short', day: 'numeric' });
     
     const dasaEl = document.createElement("div");
     dasaEl.className = "dasa-item";
@@ -1451,25 +1434,32 @@ function renderDasaBhuktis() {
     `;
     
     const bhuktiGrid = dasaEl.querySelector(".bhukti-grid");
-    let bhuktiMs = currentMs;
+    // முதல் தசை பிறப்புக்கு முன்பே தொடங்கியதால், புக்திகளை அதன்
+    // உண்மையான தொடக்கத்திலிருந்து முழு நீளத்தில் கணித்து,
+    // பிறப்புக்கு முன் முடிந்தவற்றைத் தவிர்க்கிறோம்.
+    let bhuktiMs = (i === 0) ? currentMs - elapsedFraction * years * YEAR_MS : currentMs;
     let bhuktiDasaIdx = currentDasaIdx;
-    
+
     for (let j = 0; j < 9; j++) {
       const bLord = dasaOrder[bhuktiDasaIdx];
       const bNameTa = dasaNamesTa[bLord];
       const bNameEn = dasaNamesEn[bLord];
       const bYears = dasaYears[bLord];
-      
-      let bDurationYears = (years * bYears) / 120;
-      if (i === 0) {
-        bDurationYears = bDurationYears * (1 - elapsedFraction);
-      }
-      
-      const bDurationMs = bDurationYears * 365.25 * 24 * 60 * 60 * 1000;
+
+      const bDurationYears = (years * bYears) / 120;
+      const bDurationMs = bDurationYears * YEAR_MS;
       const bEndMs = bhuktiMs + bDurationMs;
-      
-      const bStartStr = new Date(bhuktiMs).toLocaleDateString("en-IN", { year: 'numeric', month: 'short' });
-      const bEndStr = new Date(bEndMs).toLocaleDateString("en-IN", { year: 'numeric', month: 'short' });
+
+      if (bEndMs <= currentMs) {
+        // பிறப்புக்கு முன்பே முடிந்த புக்தி
+        bhuktiMs = bEndMs;
+        bhuktiDasaIdx = (bhuktiDasaIdx + 1) % 9;
+        continue;
+      }
+
+      const bDispStartMs = Math.max(bhuktiMs, currentMs);
+      const bStartStr = new Date(bDispStartMs).toLocaleDateString("ta-IN", { year: 'numeric', month: 'short' });
+      const bEndStr = new Date(bEndMs).toLocaleDateString("ta-IN", { year: 'numeric', month: 'short' });
       
       const bEl = document.createElement("div");
       bEl.className = "bhukti-item";
@@ -2197,17 +2187,13 @@ function renderHouseReadings() {
     
     div.innerHTML = `
       <h4 style="color: var(--primary-gold); font-size: 1rem; margin-bottom: 0.5rem;">
-        ${h}-ம் வீடு: ${rasi.nameTa} (${rasi.nameEn})
+        ${h}-ம் வீடு: ${rasi.nameTa}
       </h4>
       <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
-        <strong>காரகத்துவம் (Significations):</strong> ${houseMeaningsTa[h-1]}<br/>
-        <strong>Signification:</strong> ${houseMeaningsEn[h-1]}
+        <strong>காரகத்துவம்:</strong> ${houseMeaningsTa[h-1].split(' (')[0]}
       </p>
       <p style="font-size: 0.88rem; color: var(--text-primary); margin-bottom: 0.25rem;">
-        <strong>பாலன்:</strong> ${readingTa}
-      </p>
-      <p style="font-size: 0.85rem; color: var(--text-secondary);">
-        <strong>Reading:</strong> ${readingEn}
+        <strong>பலன்:</strong> ${readingTa}
       </p>
     `;
     container.appendChild(div);
@@ -2656,19 +2642,15 @@ function renderComprehensiveReport() {
 
   document.getElementById("report-career-desc").innerHTML = `
     <div class="lang-ta" style="font-family: var(--font-tamil); margin-bottom: 1rem;">${careerTa}</div>
-    <div class="lang-en" style="font-style: italic; color: var(--text-secondary);">${careerEn}</div>
   `;
   document.getElementById("report-education-desc").innerHTML = `
     <div class="lang-ta" style="font-family: var(--font-tamil); margin-bottom: 1rem;">${educationTa}</div>
-    <div class="lang-en" style="font-style: italic; color: var(--text-secondary);">${educationEn}</div>
   `;
   document.getElementById("report-marriage-desc").innerHTML = `
     <div class="lang-ta" style="font-family: var(--font-tamil); margin-bottom: 1rem;">${marriageTa}</div>
-    <div class="lang-en" style="font-style: italic; color: var(--text-secondary);">${marriageEn}</div>
   `;
   document.getElementById("report-health-desc").innerHTML = `
     <div class="lang-ta" style="font-family: var(--font-tamil); margin-bottom: 1rem;">${healthTa}</div>
-    <div class="lang-en" style="font-style: italic; color: var(--text-secondary);">${healthEn}</div>
   `;
 }
 window.renderComprehensiveReport = renderComprehensiveReport;
@@ -2766,7 +2748,7 @@ function populatePrintHeadersAndFooters() {
   const astroAddress = document.getElementById("astro-address").value.trim() || "N/A";
   const astroContact = document.getElementById("astro-contact").value.trim() || "N/A";
   
-  const lang = localStorage.getItem("report_lang") || "bi";
+  const lang = "ta";
   const trans = {
     title: { ta: "ஜாதக அறிக்கை", en: "Horoscope Report", bi: "ஜாதக அறிக்கை (Horoscope Report)" },
     name: { ta: "பெயர்:", en: "Name:", bi: "பெயர் (Name):" },
@@ -3070,7 +3052,7 @@ function getDetailedHouseLordReadingEn(houseNum, lordKey, lordHouseNum, ownHouse
 // 8. WORD DOCUMENT CLIENT-SIDE EXPORTER (.doc / MSO HTML)
 function exportToWord() {
   if (!currentHoroscopeData) {
-    alert("Please calculate a horoscope first / முதலில் ஜாதகத்தைக் கணக்கிடவும்.");
+    alert("முதலில் ஜாதகத்தைக் கணக்கிடவும்.");
     return;
   }
   
@@ -3163,9 +3145,8 @@ function exportToWord() {
     grid.parentNode.replaceChild(table, grid);
   });
   
-  // Get active language selection
-  const lang = localStorage.getItem("report_lang") || "bi";
-  const bodyClass = `lang-select-${lang}`;
+  // தமிழ் மட்டும்
+  const bodyClass = "lang-select-ta";
   
   // Word document inline styling
   const wordCss = `
@@ -3336,7 +3317,7 @@ function exportToWord() {
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
     <head>
       <meta charset="utf-8">
-      <title>Horoscope Report</title>
+      <title>ஜாதக அறிக்கை</title>
       <!--[if gte mso 9]>
       <xml>
         <w:WordDocument>
