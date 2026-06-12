@@ -195,18 +195,15 @@ function initLocationSearch() {
     
     // Find matches in local database
     const localMatches = CITIES.filter(city => city.name.toLowerCase().includes(query)).slice(0, 5);
-    
+
     clearTimeout(nominatimTimeout);
-    
-    // If we have enough local matches, render immediately
-    if (localMatches.length >= 3) {
-      renderSuggestions(localMatches);
-    } else {
-      // Debounce and fetch from OSM Nominatim API to get global cities
-      nominatimTimeout = setTimeout(() => {
-        fetchNominatimSuggestions(query, localMatches);
-      }, 300);
-    }
+
+    // உள்ளூர் பட்டியலில் இருந்தாலும் இணையத் தேடலையும் இணைக்கிறோம் —
+    // சிறிய கிராமங்கள் உட்பட அனைத்து இடங்களும் கிடைக்க வேண்டும்
+    if (localMatches.length) renderSuggestions(localMatches);
+    nominatimTimeout = setTimeout(() => {
+      fetchRemoteSuggestions(query, localMatches);
+    }, 350);
   });
   
   // Close suggestions when clicking outside
@@ -217,47 +214,72 @@ function initLocationSearch() {
   });
 }
 
-function fetchNominatimSuggestions(query, localMatches) {
-  // OpenStreetMap Nominatim — இலவச, திறந்த மூல geocoding (தமிழ்ப் பெயர்கள் முன்னுரிமை)
-  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&accept-language=ta,en`;
+// இலவச, திறந்த மூலத் தேடல்: Photon (எழுத்துப்பிழை சகிப்பு, சிறு கிராமங்கள் உட்பட)
+// + Nominatim (தமிழ்ப் பெயர்கள்) — இரண்டையும் இணையாக அழைத்து இணைக்கிறோம்
+function fetchRemoteSuggestions(query, localMatches) {
+  const photonParse = data => (data.features || []).map(f => {
+    const p = f.properties || {};
+    const parts = [p.name, p.county || p.city || p.district, p.state, p.country].filter(Boolean);
+    return {
+      name: parts.join(", "),
+      lat: f.geometry.coordinates[1],
+      lng: f.geometry.coordinates[0]
+    };
+  }).filter(m => m.name);
 
-  fetch(url)
+  const photonReq = fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=8`)
+    .then(res => res.json()).then(photonParse);
+
+  // கடைசி எழுத்து வேறுபாடுகளுக்கு (patti/patty போன்றவை) — முன்னொட்டுத் தேடல்
+  const prefixQuery = query.length > 4 ? query.slice(0, -1) : null;
+  const photonPrefixReq = prefixQuery
+    ? fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(prefixQuery)}&limit=6`)
+        .then(res => res.json()).then(photonParse)
+    : Promise.resolve([]);
+
+  const nominatimReq = fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&accept-language=ta,en`)
     .then(res => res.json())
-    .then(data => {
-      const osmMatches = data.map(item => ({
-        name: item.display_name,
-        lat: parseFloat(item.lat),
-        lng: parseFloat(item.lon)
-      }));
-      
-      // Combine results while removing duplicates near coordinates
-      const combined = [...localMatches];
-      osmMatches.forEach(osm => {
-        const isDuplicate = combined.some(local => 
-          Math.abs(local.lat - osm.lat) < 0.05 && Math.abs(local.lng - osm.lng) < 0.05
+    .then(data => data.map(item => ({
+      name: item.display_name,
+      lat: parseFloat(item.lat),
+      lng: parseFloat(item.lon)
+    })));
+
+  Promise.allSettled([photonReq, photonPrefixReq, nominatimReq]).then(results => {
+    const combined = [...localMatches];
+    results.forEach(r => {
+      if (r.status !== "fulfilled") return;
+      r.value.forEach(m => {
+        const isDuplicate = combined.some(c =>
+          Math.abs(c.lat - m.lat) < 0.02 && Math.abs(c.lng - m.lng) < 0.02
         );
-        if (!isDuplicate) {
-          combined.push(osm);
-        }
+        if (!isDuplicate) combined.push(m);
       });
-      
-      renderSuggestions(combined.slice(0, 6));
-    })
-    .catch(err => {
-      console.error("OSM Nominatim fetch error:", err);
-      renderSuggestions(localMatches);
     });
+
+    // பயனர் தொடர்ந்து தட்டச்சு செய்திருந்தால் பழைய முடிவுகளைக் காட்ட வேண்டாம்
+    const currentQuery = document.getElementById("birth-location").value.toLowerCase().trim();
+    if (currentQuery !== query) return;
+
+    renderSuggestions(combined.slice(0, 10), true);
+  });
 }
 
-function renderSuggestions(matches) {
+function renderSuggestions(matches, isFinal) {
   const suggestionsBox = document.getElementById("suggestions-box");
   const searchInput = document.getElementById("birth-location");
   const latInput = document.getElementById("latitude");
   const lngInput = document.getElementById("longitude");
   const tzSelect = document.getElementById("timezone");
-  
+
   if (matches.length === 0) {
-    suggestionsBox.style.display = "none";
+    if (isFinal) {
+      // எதுவும் கிடைக்கவில்லை — பயனருக்கு வழிகாட்டு
+      suggestionsBox.innerHTML = `<div class="suggestion-item" style="cursor: default; color: var(--text-muted);">முடிவு கிடைக்கவில்லை — வேறு எழுத்துப்பிழையில் முயற்சிக்கவும் (எ.கா. patti/patty), அல்லது அருகிலுள்ள பெரிய ஊரைத் தேடவும், அல்லது அட்சரேகை/தீர்க்கரேகையை நேரடியாக உள்ளிடவும்.</div>`;
+      suggestionsBox.style.display = "block";
+    } else {
+      suggestionsBox.style.display = "none";
+    }
     return;
   }
   
