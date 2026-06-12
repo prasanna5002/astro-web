@@ -2202,3 +2202,334 @@ function ensureExtraBlocks3() {
     setTimeout(renderForecastCalendar, 100);
   };
 })();
+
+// ================================================================
+// விரிவாக்கம் 4 — (அ) 3-மாத தினசரி ஒரு-வரிப் பலன்கள்
+//                (ஆ) முதன்மைப் பிரச்சனை கண்டறிதல் & பரிகாரம்
+// ================================================================
+
+// ---------- (அ) தினசரி ஒரு-வரிப் பலன் அட்டவணைகள் ----------
+const TARA_ONELINE = [
+  "உடல்நலம் கவனிக்கவும்; புதிய தொடக்கங்களைத் தவிர்க்கவும்",
+  "பணம், முதலீடு, வியாபாரப் பேச்சுக்கு உகந்த நாள்",
+  "பயணம், வாகனம், ஆவணக் கையெழுத்து தவிர்ப்பது நலம்",
+  "குடும்ப சுப காரியங்களுக்கு நல்ல நாள்",
+  "புதிய முயற்சி வேண்டாம்; நிலுவைப் பணிகளை முடிக்கவும்",
+  "ஒப்பந்தம், தொடக்கம், முக்கிய காரியங்களுக்கு மிகச் சிறந்த நாள்",
+  "மிக முக்கியக் காரியங்களைத் தள்ளி வைக்க வேண்டிய நாள்",
+  "சந்திப்பு, பேச்சுவார்த்தை, உறவு வளர்ப்புக்கு நல்ல நாள்",
+  "எதிலும் அனுகூலம் — தாராளமாகச் செயல்படலாம்"
+];
+
+const CHANDRA_HOUSE_HINT = [
+  "சுய காரியங்களுக்கு உகந்தது", "பணப் பரிவர்த்தனையில் நிதானம்", "துணிந்த முயற்சிகள் வெல்லும்",
+  "மன அமைதி காக்கவும்", "முக்கிய முடிவுகளில் நிதானம்", "நிலுவைப் பணிகள் முடியும்",
+  "உறவு & கூட்டு முயற்சி சிறக்கும்", "சந்திராஷ்டமம் — முக்கிய காரியம் வேண்டாம்", "தர்ம காரியம், வழிபாடு நலம்",
+  "அலுவல் வெற்றி தரும் நாள்", "லாபமும் நண்பர் உதவியும் உண்டு", "செலவு கூடும்; ஓய்வு நலம்"
+];
+
+function renderDailyOneLiners() {
+  const el = document.getElementById("forecast-daily-lines");
+  if (!el || typeof VAKYA === "undefined" || !currentHoroscopeData) return;
+
+  const birthData = currentHoroscopeData.birth;
+  const janmaNak = Math.floor(birthData.moon / (360/27)) % 27;
+  const janmaRasi = Math.floor(birthData.moon / 30) % 12;
+  const today = new Date();
+  const year0 = today.getFullYear(), month0 = today.getMonth();
+
+  // இந்த 90 நாட்களுக்குள் புக்தி மாற்றம் உண்டா?
+  let eventHtml = "";
+  try {
+    const birthMs = currentHoroscopeData.meta.birthDate.getTime();
+    const curNow = computeCurrentDasaBhukti(birthData.moon, birthMs, Date.now());
+    if (curNow) {
+      const endIn90 = curNow.bhuktiEnd - Date.now() < 92 * 86400000;
+      if (endIn90) {
+        const nxt = computeCurrentDasaBhukti(birthData.moon, birthMs, curNow.bhuktiEnd + 86400000);
+        const fmtD = ms => new Date(ms).toLocaleDateString("ta-IN", {year:"numeric",month:"short",day:"numeric"});
+        eventHtml = `<div style="padding:0.8rem;margin-bottom:1rem;border:1px solid rgba(229,193,88,0.4);border-radius:var(--radius-md);background:rgba(229,193,88,0.06);">
+          <strong style="color:var(--primary-gold);">முக்கிய மாற்றம் இந்த 3 மாதங்களில்:</strong>
+          <span class="reading-text"> ${fmtD(curNow.bhuktiEnd)} அன்று ${planetNamesTa[curNow.dasaLord]} தசையில் ${planetNamesTa[curNow.bhuktiLord]} புக்தி முடிந்து ${nxt ? planetNamesTa[nxt.bhuktiLord] + " புக்தி தொடங்குகிறது — பலன்களின் போக்கு மாறும் கால எல்லை." : "அடுத்த புக்தி தொடங்குகிறது."}</span>
+        </div>`;
+      }
+    }
+  } catch(e) {}
+
+  let html = eventHtml;
+
+  for (let mi = 0; mi < 3; mi++) {
+    let y = year0, m = month0 + mi;
+    if (m > 11) { m -= 12; y += 1; }
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    const startDay = (mi === 0) ? today.getDate() : 1;
+
+    let rows = "";
+    for (let day = startDay; day <= daysInMonth; day++) {
+      const dt = new Date(y, m, day, 12, 0, 0);
+      const jd = VAKYA.jdFromDate(dt);
+      const dd = computeDayData(jd, janmaNak, janmaRasi);
+      if (!dd) continue;
+      const dow = new Date(y, m, day).getDay();
+      const chHouse = (dd.moonRasi - janmaRasi + 12) % 12 + 1;
+      const isChandrashtama = chHouse === 8;
+      const isVada = dd.tara === 6;
+      const isRikta = [3, 8, 13].includes(dd.tithiNum % 15);
+      const bothGood = dd.taraGood && dd.chandraGood;
+      const isToday = (mi === 0 && day === today.getDate());
+
+      let advice, color;
+      if (isChandrashtama) {
+        advice = CHANDRA_HOUSE_HINT[7];
+        color = "#ff5555";
+      } else if (isVada) {
+        advice = TARA_ONELINE[6];
+        color = "#ff5555";
+      } else {
+        advice = TARA_ONELINE[dd.tara] + "; " + CHANDRA_HOUSE_HINT[chHouse - 1];
+        color = bothGood ? "#55ff55" : "rgba(255,255,255,0.75)";
+      }
+      if (isRikta && !isChandrashtama && !isVada) advice += " (ரிக்த திதி — சுபத் தொடக்கம் வேண்டாம்)";
+
+      rows += `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);${isToday?'background:rgba(229,193,88,0.08);':''}">
+        <td style="padding:0.35rem 0.5rem;white-space:nowrap;font-weight:${isToday?'800':'500'};color:${isToday?'var(--primary-gold)':'rgba(255,255,255,0.85)'};">${day} ${TAMIL_MONTHS_CAL[m].slice(0,3)} (${WEEK_DAYS_SHORT[dow]})${isToday?' ★':''}</td>
+        <td style="padding:0.35rem 0.5rem;white-space:nowrap;color:rgba(255,255,255,0.6);">${NAKSHATRAS[dd.nak].nameTa}</td>
+        <td style="padding:0.35rem 0.5rem;white-space:nowrap;color:${dd.taraGood?'#55ff55':'#ffb347'};">${TARA_NAMES[dd.tara].name.replace(" தாரை","")}</td>
+        <td style="padding:0.35rem 0.5rem;color:${color};">${advice}</td>
+      </tr>`;
+    }
+
+    html += `<details ${mi===0?'open':''} style="margin-bottom:1rem;">
+      <summary style="cursor:pointer;color:var(--primary-gold);font-weight:700;font-family:var(--font-tamil);padding:0.5rem 0;">${TAMIL_MONTHS_CAL[m]} ${y} — நாள்வாரி ஒரு-வரிப் பலன்</summary>
+      <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-family:var(--font-tamil);font-size:0.82rem;">
+        <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
+          <th style="padding:0.4rem 0.5rem;text-align:left;color:var(--primary-gold);">தேதி</th>
+          <th style="padding:0.4rem 0.5rem;text-align:left;color:var(--primary-gold);">நட்சத்திரம்</th>
+          <th style="padding:0.4rem 0.5rem;text-align:left;color:var(--primary-gold);">தாரை</th>
+          <th style="padding:0.4rem 0.5rem;text-align:left;color:var(--primary-gold);">இன்றையப் பலன் (உங்களுக்கு)</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </details>`;
+  }
+
+  el.innerHTML = `<div class="lang-ta">${html}</div>`;
+}
+
+// ----------------------------------------------------------------
+// (ஆ) முதன்மைப் பிரச்சனை கண்டறிதல் & தீர்வு
+// ----------------------------------------------------------------
+function detectMajorAfflictions(birthData, transitData) {
+  const out = [];
+  const lagnaSign = Math.floor(birthData.lagna / 30) % 12;
+  const seven = ["sun","moon","mars","mercury","jupiter","venus","saturn"];
+  const allP = seven.concat(["rahu","ketu"]);
+  const sign = {}; allP.forEach(p => { sign[p] = Math.floor(birthData[p]/30)%12; });
+  const houseOf = p => (sign[p] - lagnaSign + 12) % 12 + 1;
+  const moonSign = sign.moon;
+
+  // 1. செவ்வாய் தோஷம்
+  const marsH = houseOf("mars");
+  if ([1,2,4,7,8,12].includes(marsH)) {
+    const ms = getPlanetState("mars", sign.mars);
+    const softened = ms === "own" || ms === "exalted";
+    out.push({
+      name: "செவ்வாய் தோஷம்", severity: softened ? 2 : 4,
+      desc: `செவ்வாய் லக்னத்திற்கு ${marsH}-ம் வீட்டில் அமர்ந்துள்ளார்${softened ? " (ஆட்சி/உச்ச நிலையில் இருப்பதால் தோஷ வீரியம் வெகுவாகக் குறைகிறது)" : ""}.`,
+      impact: "திருமணத் தாமதம், தாம்பத்தியத்தில் கருத்து வேறுபாடு, கோபக் குணத்தால் உறவுச் சிக்கல்.",
+      remedy: "வைத்தீஸ்வரன் கோயில் அங்காரக வழிபாடு; செவ்வாய்க்கிழமை விரதம் & சிவப்பு வஸ்திர தானம்; கந்த சஷ்டி கவசம் பாராயணம்; திருமணப் பொருத்தத்தில் இரு ஜாதகங்களிலும் தோஷ சமநிலை பார்த்து இணைப்பது முழுப் பரிகாரம்."
+    });
+  }
+
+  // 2. காலசர்ப்ப தோஷம் — 7 கிரகங்களும் ராகு→கேது அரைவட்டத்தில்
+  const within = lon => ((lon - birthData.rahu + 360) % 360) < 180;
+  const allIn = seven.every(p => within(birthData[p]));
+  const allOut = seven.every(p => !within(birthData[p]));
+  if (allIn || allOut) {
+    out.push({
+      name: "காலசர்ப்ப தோஷம்", severity: 5,
+      desc: "ஏழு கிரகங்களும் ராகு-கேது அச்சின் ஒரே பக்கத்தில் அமைந்துள்ளன — முழு காலசர்ப்ப அமைப்பு.",
+      impact: "முயற்சிகளில் அடிக்கடி தடை, உழைப்புக்கேற்ற பலன் தாமதம், மனஉளைச்சல்; ராகு/கேது தசைகளில் வீரியம் கூடும். (குறிப்பு: இத்தோஷம் உள்ளவர்களில் பலர் தாமத வெற்றியே அன்றி தோல்வி காண்பதில்லை.)",
+      remedy: "திருநாகேஸ்வரம் (ராகு) & கீழ்பெரும்பள்ளம் (கேது) ஸ்தல வழிபாடு; ராகு காலத்தில் துர்கா வழிபாடு; நாக பிரதிஷ்டை / நாக தோஷ பூஜை; சர்ப்ப சாந்தி ஹோமம் — காலஹஸ்தி அல்லது குக்கே சுப்ரமண்யா."
+    });
+  }
+
+  // 3. கேமத்ரும தோஷம் — சந்திரனின் 2/12-ல் கிரகமின்மை
+  const sideOcc = h => seven.some(p => p !== "moon" && p !== "sun" && sign[p] === (moonSign + h + 12) % 12);
+  if (!sideOcc(1) && !sideOcc(-1)) {
+    out.push({
+      name: "கேமத்ரும தோஷம்", severity: 3,
+      desc: "சந்திரனுக்கு இருபுறமும் (2 & 12-ம் இடங்களில்) கிரகங்கள் இல்லை.",
+      impact: "மன அழுத்தம், தனிமை உணர்வு, பண நிலையில் ஏற்ற இறக்கம் — குறிப்பாக சந்திர தசை/புக்திகளில்.",
+      remedy: "திங்கட்கிழமை விரதம் & சிவ வழிபாடு; முத்து அணிதல் (ஜோதிடர் ஆலோசனையுடன்); திங்களூர் தலம்; அன்னதானம் — மனவலிமை வளர்க்கும் தியானப் பயிற்சியும் சிறந்த நடைமுறைப் பரிகாரம்."
+    });
+  }
+
+  // 4. பித்ரு தோஷம் — சூரியன்+ராகு/கேது அல்லது 9-ல் ராகு/கேது/சனி
+  const sunWithNode = sign.sun === sign.rahu || sign.sun === sign.ketu;
+  const ninthAfflicted = ["rahu","ketu","saturn"].some(p => houseOf(p) === 9);
+  if (sunWithNode || ninthAfflicted) {
+    out.push({
+      name: "பித்ரு தோஷம்", severity: 3,
+      desc: sunWithNode ? "சூரியன் ராகு/கேதுவுடன் இணைந்துள்ளார்." : "9-ம் வீட்டில் (பித்ரு ஸ்தானம்) பாப கிரக அமர்வு.",
+      impact: "தந்தைவழி உறவில் இடைவெளி, முன்னோர் ஆசி தடை, காரிய தாமதம், சந்தான விஷயங்களில் சுணக்கம்.",
+      remedy: "ராமேஸ்வரம்/திருவெண்காடு தர்ப்பணம்; அமாவாசை தோறும் முன்னோர் நினைவு தர்ப்பணம்; திலதானம்; ஏழைகளுக்கு அன்னதானம் — பித்ரு க்ஷேம பூஜை ஆண்டுக்கொருமுறை."
+    });
+  }
+
+  // 5. களத்திர தோஷம் — 7-ல் பாபர்கள்
+  const malefics7 = ["saturn","rahu","ketu","mars","sun"].filter(p => houseOf(p) === 7);
+  if (malefics7.length) {
+    out.push({
+      name: "களத்திர தோஷம்", severity: malefics7.length >= 2 ? 4 : 3,
+      desc: `7-ம் வீட்டில் (களத்திர ஸ்தானம்) ${malefics7.map(p=>planetNamesTa[p]).join(", ")} அமர்வு.`,
+      impact: "திருமண தாமதம் அல்லது தாம்பத்தியத்தில் விட்டுக்கொடுப்பு அதிகம் தேவைப்படும் அமைப்பு.",
+      remedy: "உமாமகேஸ்வரர் / கல்யாணசுந்தரர் வழிபாடு (திருமணம் தாமதம் எனில் திருமணஞ்சேரி தலம்); வெள்ளிக்கிழமை லட்சுமி வழிபாடு; சுயம்வரா பார்வதி மந்திர ஜபம்."
+    });
+  }
+
+  // 6. லக்னாதிபதி நீசம் / அஸ்தங்கம்
+  const lagnaLord = SIGN_LORDS[lagnaSign];
+  const llState = getPlanetState(lagnaLord, sign[lagnaLord]);
+  const llCombust = lagnaLord !== "sun" && COMBUSTION_ORBS[lagnaLord] && angularDiff(birthData[lagnaLord], birthData.sun) <= COMBUSTION_ORBS[lagnaLord];
+  if (llState === "debilitated" || llCombust) {
+    out.push({
+      name: "லக்னாதிபதி பலவீனம்", severity: 4,
+      desc: `லக்னாதிபதி ${planetNamesTa[lagnaLord]} ${llState === "debilitated" ? "நீச நிலையில்" : "சூரியனால் அஸ்தங்கம் அடைந்து"} உள்ளார்.`,
+      impact: "உடல் சோர்வு, தன்னம்பிக்கைக் குறைவு, முயற்சிகளில் தொய்வு — ஜாதகத்தின் மூல பலமே இவ்விடம்தான்.",
+      remedy: `${PLANET_REMEDIES[lagnaLord] ? PLANET_REMEDIES[lagnaLord].temple + " வழிபாடு; " + PLANET_REMEDIES[lagnaLord].day + " விரதம்; " + PLANET_REMEDIES[lagnaLord].mantra + " ஜபம் (தினமும் 108 முறை); " + PLANET_REMEDIES[lagnaLord].danam + " தானம்" : "நவகிரக வழிபாடு"} — லக்னாதிபதியை வலுப்படுத்துவதே இந்த ஜாதகத்தின் மிக முக்கியமான ஒற்றைப் பரிகாரம்.`
+    });
+  }
+
+  // 7. நடப்பு சனி நிலை (ஏழரை / அஷ்டமம் / அர்த்தாஷ்டமம்)
+  if (transitData) {
+    const satTransitSign = Math.floor(transitData.saturn / 30) % 12;
+    const satFromMoon = (satTransitSign - moonSign + 12) % 12 + 1;
+    if ([12, 1, 2].includes(satFromMoon)) {
+      out.push({
+        name: "ஏழரைச் சனி (நடப்பு)", severity: 4,
+        desc: `தற்போது சனி உங்கள் ஜென்ம ராசிக்கு ${satFromMoon}-ல் சஞ்சரிக்கிறார் — ஏழரைச் சனியின் ${satFromMoon === 12 ? "முதல்" : satFromMoon === 1 ? "இரண்டாம் (ஜென்மச் சனி)" : "இறுதி"} பகுதி.`,
+        impact: "உழைப்பு கூடுதல், பலன் தாமதம், மன அழுத்தம், எதிர்பாரா பொறுப்புகள் — ஆனால் இக்காலம் தரும் பாடங்கள் வாழ்நாள் முழுக்கப் பயன்படும்.",
+        remedy: "திருநள்ளாறு சனீஸ்வரர் தரிசனம்; சனிக்கிழமை எள் தீப தானம், காக்கைக்கு அன்னம்; அனுமன் வழிபாடு & ஹனுமான் சாலிசா; கருப்பு வஸ்திர/இரும்பு தானம் — சனி கடமையைச் சோதிப்பவர், எனவே நேர்மையான கடின உழைப்பே மிகப்பெரிய பரிகாரம்."
+      });
+    } else if (satFromMoon === 8) {
+      out.push({
+        name: "அஷ்டமச் சனி (நடப்பு)", severity: 4,
+        desc: "தற்போது சனி உங்கள் ஜென்ம ராசிக்கு 8-ல் சஞ்சரிக்கிறார்.",
+        impact: "ஆரோக்கியம், வாகனம், திடீர் செலவுகளில் விழிப்புணர்வு தேவைப்படும் காலம்.",
+        remedy: "திருநள்ளாறு வழிபாடு; சனிக்கிழமை விரதம்; எள் & இரும்பு தானம்; வாகனம் ஓட்டும்போது கூடுதல் கவனம் — அவசர முடிவுகள் தவிர்ப்பதே சிறந்த நடைமுறைப் பரிகாரம்."
+      });
+    } else if (satFromMoon === 4) {
+      out.push({
+        name: "அர்த்தாஷ்டமச் சனி (நடப்பு)", severity: 3,
+        desc: "தற்போது சனி உங்கள் ஜென்ம ராசிக்கு 4-ல் சஞ்சரிக்கிறார்.",
+        impact: "தாய்வழி/சொத்து/மனநிம்மதி விஷயங்களில் கவனம் தேவை.",
+        remedy: "சனிக்கிழமை சனீஸ்வரர் வழிபாடு; தாயாரை மகிழ்வித்தல் & பெரியோர் ஆசி பெறுதல் — இதுவே இக்காலத்தின் நேரடிப் பரிகாரம்."
+      });
+    }
+  }
+
+  // 8. நடப்பு தசாநாதன் நீசம் / பகை வீடு
+  try {
+    const cur = computeCurrentDasaBhukti(birthData.moon, currentHoroscopeData.meta.birthDate.getTime(), Date.now());
+    if (cur && seven.includes(cur.dasaLord)) {
+      const dState = getPlanetState(cur.dasaLord, sign[cur.dasaLord]);
+      const dHouse = houseOf(cur.dasaLord);
+      if (dState === "debilitated" || [6,8,12].includes(dHouse)) {
+        out.push({
+          name: "நடப்பு தசாநாதன் பலவீனம்", severity: 3,
+          desc: `நடப்பு ${planetNamesTa[cur.dasaLord]} தசையின் அதிபதி ஜாதகத்தில் ${dState === "debilitated" ? "நீச நிலையில்" : dHouse + "-ம் (மறைவு) வீட்டில்"} உள்ளார்.`,
+          impact: "இத்தசைக் காலம் முழுவதும் அதன் காரகப் பலன்கள் தாமதமாகவோ உழைப்பு கூடியோ கிடைக்கும்.",
+          remedy: `${PLANET_REMEDIES[cur.dasaLord] ? PLANET_REMEDIES[cur.dasaLord].temple + " தரிசனம்; " + PLANET_REMEDIES[cur.dasaLord].mantra + " தினசரி ஜபம்; " + PLANET_REMEDIES[cur.dasaLord].day + " விரதம்; " + PLANET_REMEDIES[cur.dasaLord].danam + " தானம்" : "நவகிரக வழிபாடு"} — தசை முடியும்வரை தொடர்வது நல்லது.`
+        });
+      }
+    }
+  } catch(e) {}
+
+  // 9. ராகு/கேது லக்னத்தில்
+  if (houseOf("rahu") === 1 || houseOf("ketu") === 1) {
+    const which = houseOf("rahu") === 1 ? "rahu" : "ketu";
+    out.push({
+      name: `லக்னத்தில் ${planetNamesTa[which]}`, severity: 2,
+      desc: `${planetNamesTa[which]} லக்னத்தில் அமர்ந்துள்ளார்.`,
+      impact: which === "rahu" ? "ஆளுமையில் அதீத லட்சியமும் அலைபாயும் மனமும்; சுயமுன்னேற்ற வேட்கை மிகும்." : "வைராக்கியமும் தனிமை விருப்பும்; சுய அடையாளத் தேடல் நீளும்.",
+      remedy: which === "rahu" ? "துர்கா வழிபாடு; ராகு கால தீப ஏற்றம்; திருநாகேஸ்வரம் தரிசனம்." : "விநாயகர் வழிபாடு; கீழ்பெரும்பள்ளம் தரிசனம்; வைடூரியம் (ஆலோசனையுடன்)."
+    });
+  }
+
+  return out.sort((a, b) => b.severity - a.severity);
+}
+
+function renderMajorProblem(birthData) {
+  const el = document.getElementById("report-major-problem");
+  if (!el || !currentHoroscopeData) return;
+  const afflictions = detectMajorAfflictions(birthData, currentHoroscopeData.transit);
+
+  if (!afflictions.length) {
+    el.innerHTML = `<div class="lang-ta" style="padding:1rem;border:1px solid rgba(85,255,85,0.35);border-radius:var(--radius-md);background:rgba(85,255,85,0.05);">
+      <p class="reading-text" style="margin:0;"><strong style="color:#55ff55;">பெரிய தோஷங்கள் எதுவும் இல்லை.</strong> உங்கள் ஜாதகத்தில் முக்கியமான தோஷ அமைப்புகள் காணப்படவில்லை — இது அபூர்வமான நல்ல அமைப்பு. வாரம் ஒருமுறை குலதெய்வ வழிபாடும் நவகிரக வணக்கமும் இந்நிலையை மேலும் வலுப்படுத்தும்.</p>
+    </div>`;
+    return;
+  }
+
+  const main = afflictions[0];
+  const rest = afflictions.slice(1);
+  const sevLabel = s => s >= 5 ? "மிக அதிகம்" : s >= 4 ? "அதிகம்" : s >= 3 ? "நடுத்தரம்" : "குறைவு";
+  const sevColor = s => s >= 4 ? "#ff5555" : s >= 3 ? "#ffb347" : "var(--primary-gold)";
+
+  el.innerHTML = `<div class="lang-ta">
+    <div style="padding:1.25rem;border:1px solid ${sevColor(main.severity)};border-radius:var(--radius-md);background:rgba(255,85,85,0.04);margin-bottom:1.25rem;">
+      <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.6rem;">
+        <strong style="font-size:1.1rem;color:${sevColor(main.severity)};">முதன்மைப் பிரச்சனை: ${main.name}</strong>
+        <span style="border:1px solid ${sevColor(main.severity)};color:${sevColor(main.severity)};padding:0.1rem 0.5rem;border-radius:4px;font-size:0.72rem;font-weight:700;">தீவிரம்: ${sevLabel(main.severity)}</span>
+      </div>
+      <p class="reading-text" style="margin-bottom:0.5rem;"><strong>அமைப்பு:</strong> ${main.desc}</p>
+      <p class="reading-text" style="margin-bottom:0.75rem;"><strong>வாழ்வில் தாக்கம்:</strong> ${main.impact}</p>
+      <div style="padding:0.9rem;border:1px solid rgba(85,255,85,0.35);border-radius:var(--radius-md);background:rgba(85,255,85,0.05);">
+        <strong style="color:#55ff55;">தீர்வு / பரிகாரம்:</strong>
+        <p class="reading-text" style="margin:0.4rem 0 0;">${main.remedy}</p>
+      </div>
+    </div>
+    ${rest.length ? `
+    <h4 style="color:var(--primary-gold);margin-bottom:0.75rem;">இரண்டாம் நிலைப் பரிசீலனைகள்</h4>
+    ${rest.map(a => `
+      <details style="margin-bottom:0.6rem;border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-md);padding:0.6rem 0.9rem;">
+        <summary style="cursor:pointer;font-weight:700;color:${sevColor(a.severity)};font-family:var(--font-tamil);">${a.name} — தீவிரம்: ${sevLabel(a.severity)}</summary>
+        <p class="reading-text" style="margin:0.6rem 0 0.4rem;"><strong>அமைப்பு:</strong> ${a.desc}</p>
+        <p class="reading-text" style="margin-bottom:0.4rem;"><strong>தாக்கம்:</strong> ${a.impact}</p>
+        <p class="reading-text" style="margin:0;"><strong>பரிகாரம்:</strong> ${a.remedy}</p>
+      </details>`).join("")}` : ""}
+    <p class="reading-meta" style="margin-top:1rem;">தோஷங்கள் என்பவை "தடைகள்" அன்றி "கவன ஒளிவிளக்குகள்" — எந்தத் தோஷமும் முழு ஜாதக பலத்தை மீற முடியாது. பரிகாரத்தோடு சுய முயற்சியும் சேர்ந்தால் எந்த அமைப்பும் சாதகமாக மாறும்.</p>
+  </div>`;
+}
+
+// ---------- Block 4 injector ----------
+function ensureExtraBlocks4() {
+  const alertIcon = '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>';
+  const listIcon = '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>';
+
+  const compPanel = document.querySelector("#panel-comprehensive-report .details-panel");
+  if (compPanel && !document.getElementById("report-major-problem")) {
+    compPanel.insertAdjacentHTML("afterbegin",
+      predBlock("report-major-problem", "முதன்மைப் பிரச்சனை & தீர்வு — தோஷ ஆய்வு", alertIcon));
+  }
+
+  const calPanel = document.querySelector("#panel-forecast-calendar .details-panel");
+  if (calPanel && !document.getElementById("forecast-daily-lines")) {
+    calPanel.insertAdjacentHTML("beforeend",
+      predBlock("forecast-daily-lines", "நாள்வாரி ஒரு-வரிப் பலன்கள் — 3 மாதங்கள்", listIcon));
+  }
+}
+
+// ---------- renderAllPredictions இணைப்பு (சங்கிலி 2) ----------
+(function patchRenderAll2() {
+  const orig = window.renderAllPredictions;
+  window.renderAllPredictions = function() {
+    orig();
+    ensureExtraBlocks4();
+    if (!currentHoroscopeData) return;
+    renderMajorProblem(currentHoroscopeData.birth);
+    // தினசரி வரிகள் — 90 நாள் பஞ்சாங்கக் கணிப்பு, UI முடங்காமல் தாமதமாக
+    setTimeout(renderDailyOneLiners, 150);
+  };
+})();
