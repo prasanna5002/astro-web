@@ -648,6 +648,7 @@ function renderChartAndTable() {
   renderHouseReadings();
   renderComprehensiveReport();
   if (typeof renderVakyaPanchangam === "function") renderVakyaPanchangam();
+  if (typeof renderAllPredictions === "function") renderAllPredictions();
   populatePrintHeadersAndFooters();
 }
 
@@ -1468,10 +1469,17 @@ function renderDasaBhuktis() {
 
       const bEl = document.createElement("div");
       bEl.className = "bhukti-item" + (isCurrentBhukti ? " bhukti-current" : "");
+      bEl.style.cursor = "pointer";
+      bEl.dataset.dasaLord = lord;
+      bEl.dataset.bhuktiLord = bLord;
+      bEl.dataset.start = String(bhuktiMs);
+      bEl.title = "அந்தர தசைகளைக் காண அழுத்தவும்";
       bEl.innerHTML = `
         <div class="bhukti-name"><span class="lang-ta">${bNameTa}</span><span class="lang-sep"> / </span><span class="lang-en">${bNameEn}</span>${isCurrentBhukti ? ' <span class="current-tag">நடப்பு</span>' : ''}</div>
         <div class="bhukti-dates">${bStartStr} - ${bEndStr}</div>
+        <div class="antara-list" style="display: none;"></div>
       `;
+      bEl.addEventListener("click", () => toggleAntara(bEl));
       bhuktiGrid.appendChild(bEl);
       
       bhuktiMs = bEndMs;
@@ -1489,6 +1497,47 @@ window.toggleDasa = function(index) {
   const el = document.getElementById(`dasa-${index}`);
   if (!el) return;
   el.classList.toggle("expanded");
+};
+
+// புக்தியை அழுத்தினால் அதன் 9 அந்தர தசைகளைக் காட்டு
+window.toggleAntara = function(bEl) {
+  const list = bEl.querySelector(".antara-list");
+  if (!list) return;
+  if (list.style.display !== "none") {
+    list.style.display = "none";
+    return;
+  }
+  if (!list.innerHTML) {
+    const dasaOrder = ["ketu", "venus", "sun", "moon", "mars", "rahu", "jupiter", "saturn", "mercury"];
+    const dasaYears = { ketu: 7, venus: 20, sun: 6, moon: 10, mars: 7, rahu: 18, jupiter: 16, saturn: 19, mercury: 17 };
+    const namesTa = { ketu: "கேது", venus: "சுக்கிரன்", sun: "சூரியன்", moon: "சந்திரன்", mars: "செவ்வாய்", rahu: "ராகு", jupiter: "குரு", saturn: "சனி", mercury: "புதன்" };
+    const YEAR_MS = 365.25 * 24 * 60 * 60 * 1000;
+
+    const dLord = bEl.dataset.dasaLord;
+    const bLord = bEl.dataset.bhuktiLord;
+    const bhuktiYears = (dasaYears[dLord] * dasaYears[bLord]) / 120;
+    let t = parseFloat(bEl.dataset.start);
+    let idx = dasaOrder.indexOf(bLord);
+    const nowMs = Date.now();
+    let rows = "";
+    for (let i = 0; i < 9; i++) {
+      const aLord = dasaOrder[idx];
+      const aDur = (bhuktiYears * dasaYears[aLord]) / 120 * YEAR_MS;
+      const aEnd = t + aDur;
+      const isCur = nowMs >= t && nowMs < aEnd;
+      const s = new Date(t).toLocaleDateString("ta-IN", { year: '2-digit', month: 'short', day: 'numeric' });
+      const e = new Date(aEnd).toLocaleDateString("ta-IN", { year: '2-digit', month: 'short', day: 'numeric' });
+      rows += `<div style="display: flex; justify-content: space-between; gap: 0.5rem; padding: 0.2rem 0; border-bottom: 1px dashed rgba(255,255,255,0.05); ${isCur ? 'color: #55ff55; font-weight: 700;' : ''}">
+        <span>${namesTa[aLord]}</span><span>${s} – ${e}</span>
+      </div>`;
+      t = aEnd;
+      idx = (idx + 1) % 9;
+    }
+    list.innerHTML = `<div style="margin-top: 0.5rem; padding-top: 0.4rem; border-top: 1px solid rgba(229,193,88,0.25); font-size: 0.72rem; color: var(--text-secondary); text-align: left;">
+      <div style="color: var(--primary-gold); font-weight: 700; margin-bottom: 0.25rem;">அந்தர தசைகள்</div>${rows}
+    </div>`;
+  }
+  list.style.display = "block";
 };
 
 // 3. READINGS DATABASE DEFINITIONS
