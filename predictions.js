@@ -1456,3 +1456,749 @@ function renderAshtakootaHtml(boyNak, girlNak, boyRasi, girlRasi) {
       </div>
     </div>`;
 }
+
+// ================================================================
+// விரிவாக்கம் 3 — கால நிர்ணயம், தொழில்நுட்ப நிலைகள்,
+//   கர்மிக பாடங்கள், வாழ்க்கை விவரங்கள், முன்கணிப்பு நாட்காட்டி
+// ================================================================
+
+// ----------------------------------------------------------------
+// TASK 15 — அஸ்தங்கம், வக்ரம், கண்டாந்தம், கிரக யுத்தம்
+// ----------------------------------------------------------------
+const COMBUSTION_ORBS = { mars: 17, mercury: 13, jupiter: 11, venus: 10, saturn: 15 };
+
+function angularDiff(a, b) {
+  let d = Math.abs(a - b) % 360;
+  return d > 180 ? 360 - d : d;
+}
+
+function isRetrograde(pKey, birthDate) {
+  if (!birthDate || typeof Astronomy === "undefined") return false;
+  const bodyMap = { mars: "Mars", mercury: "Mercury", jupiter: "Jupiter", venus: "Venus", saturn: "Saturn" };
+  const body = bodyMap[pKey];
+  if (!body) return false;
+  try {
+    const d1 = new Date(birthDate.getTime() - 43200000);
+    const d2 = new Date(birthDate.getTime() + 43200000);
+    const lon1 = siderealLonAt(body, d1);
+    const lon2 = siderealLonAt(body, d2);
+    let diff = lon2 - lon1;
+    if (diff > 180) diff -= 360;
+    if (diff < -180) diff += 360;
+    return diff < 0;
+  } catch (e) { return false; }
+}
+
+function isGandantaPoint(lon) {
+  const sign = Math.floor(lon / 30) % 12;
+  const deg = lon % 30;
+  return ([3, 7, 11].includes(sign) && deg >= 29.67) || ([0, 4, 8].includes(sign) && deg <= 0.33);
+}
+
+function getKarakaDesc(p) {
+  return { sun: "அதிகாரம், தந்தை", moon: "மனம், தாய்", mars: "நிலம், சகோதரர்",
+    mercury: "கல்வி, வியாபாரம்", jupiter: "குரு, புத்திரர், செல்வம்",
+    venus: "திருமணம், வாகனம்", saturn: "ஆயுள், தொழில்",
+    rahu: "வெளிநாடு, மாற்றம்", ketu: "ஆன்மீகம், வைராக்கியம்", lagna: "உடல், ஆளுமை" }[p] || p;
+}
+
+function renderTechnicalChecks(birthData) {
+  const el = document.getElementById("report-technical");
+  if (!el || !currentHoroscopeData) return;
+  const bd = currentHoroscopeData.meta.birthDate;
+  const lagnaSign = Math.floor(birthData.lagna / 30) % 12;
+  const planets5 = ["mars", "mercury", "jupiter", "venus", "saturn"];
+  const allP = ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu"];
+
+  // Combustion
+  const combust = planets5.filter(p => angularDiff(birthData[p], birthData.sun) <= COMBUSTION_ORBS[p]);
+
+  // Retrograde (computed async to avoid blocking)
+  const retro = [];
+  if (bd && typeof Astronomy !== "undefined") {
+    planets5.forEach(p => { try { if (isRetrograde(p, bd)) retro.push(p); } catch(e){} });
+  }
+
+  // Gandanta
+  const gandanta = allP.filter(p => isGandantaPoint(birthData[p]));
+  if (isGandantaPoint(birthData.lagna)) gandanta.push("lagna");
+
+  // Graha Yuddha
+  const wars = [];
+  for (let i = 0; i < planets5.length; i++)
+    for (let j = i + 1; j < planets5.length; j++) {
+      const d = angularDiff(birthData[planets5[i]], birthData[planets5[j]]);
+      if (d < 1) wars.push({ p1: planets5[i], p2: planets5[j], diff: d.toFixed(2) });
+    }
+
+  const sec = (title, content) =>
+    `<div style="margin-bottom: 1.5rem;"><h4 style="color:var(--primary-gold);margin-bottom:0.6rem;font-family:var(--font-tamil);">${title}</h4>${content}</div>`;
+
+  const none = msg => `<p class="reading-meta">${msg}</p>`;
+
+  let html = '';
+
+  html += sec("அஸ்தங்கம் (சூரியனோடு சேர்க்கை கிரகங்கள்)",
+    combust.length === 0
+      ? none("எந்தக் கிரகமும் சூரியனால் அஸ்தங்கம் ஆகவில்லை — கிரக பலன்கள் முழுமையாகக் கிடைக்கும்.")
+      : combust.map(p => {
+          const h = (Math.floor(birthData[p]/30)%12 - lagnaSign + 12)%12 + 1;
+          const d = angularDiff(birthData[p], birthData.sun).toFixed(1);
+          return `<div class="detail-item"><span class="detail-key">${planetNamesTa[p]} — ${d}° (அஸ்தங்கம்)</span>
+            <span class="detail-val">${h}-ம் வீட்டில் ${planetNamesTa[p]} அஸ்தங்கம் — ${getKarakaDesc(p)} காரகத்துவங்கள் சற்றுத் தணிந்து, அதன் தசா/புக்தியில் முயற்சி இரட்டிப்பாகத் தேவைப்படும். ${planetNamesTa[p]} தலம் வழிபாடு சரியான பரிகாரம்.</span></div>`;
+        }).join(""));
+
+  html += sec("வக்ர நிலை கிரகங்கள்",
+    retro.length === 0
+      ? none("பிறப்பு நேரத்தில் எந்தக் கிரகமும் வக்ர நிலையில் இல்லை.")
+      : retro.map(p => {
+          const h = (Math.floor(birthData[p]/30)%12 - lagnaSign + 12)%12 + 1;
+          return `<div class="detail-item"><span class="detail-key">${planetNamesTa[p]} — வக்ரம் (பின்னோக்கி கதி)</span>
+            <span class="detail-val">${h}-ம் வீட்டில் வக்ர நிலை — ${getKarakaDesc(p)} பலன்கள் உள்முகமாக வெளிப்படும்; ஆழமான சிந்தனை அதிகமாகும். வக்ர தசை காலத்தில் கடந்த கால சுழல்கள் மீண்டும் வந்து இறுதியில் முழு விடுதலை தரும்.</span></div>`;
+        }).join(""));
+
+  html += sec("கண்டாந்த / சந்தி நிலை (ஜல-அக்னி ராசி சேர்க்கை)",
+    gandanta.length === 0
+      ? none("எந்தக் கிரகமும் / லக்னமும் கண்டாந்த புள்ளியில் இல்லை.")
+      : gandanta.map(p => {
+          const name = p === "lagna" ? "லக்னம்" : planetNamesTa[p];
+          const lon = p === "lagna" ? birthData.lagna : birthData[p];
+          const signN = RASIS[Math.floor(lon/30)%12].nameTa;
+          return `<div class="detail-item"><span class="detail-key">${name} — கண்டாந்தம் (${signN})</span>
+            <span class="detail-val">ஜல ராசி முடிவு/அக்னி ராசி தொடக்க சூக்கும சந்தி புள்ளி — கர்ம சுழல்களும் ஆன்மீக ஆழமும் குறிக்கும். நதி ஸ்நானம், நவகிரக வழிபாடு இக்குறையை நிவர்த்திக்கும்.</span></div>`;
+        }).join(""));
+
+  html += sec("கிரக யுத்தம் (1° க்குள் ஒருங்கமைவு)",
+    wars.length === 0
+      ? none("பிறப்பு சாதகத்தில் கிரக யுத்தம் இல்லை.")
+      : wars.map(w =>
+          `<div class="detail-item"><span class="detail-key">${planetNamesTa[w.p1]} ↔ ${planetNamesTa[w.p2]} யுத்தம் (${w.diff}°)</span>
+          <span class="detail-val">வடதிசை விலகல் (ecliptic latitude) அதிகமுள்ள கிரகம் வெல்லும் — வெற்றிக் கிரகத்தின் காரகம் வலுக்கும், தோல்வி கிரகத்தின் பலன் தளர்ந்து இரண்டையும் வழிபட பரிகாரம் ஆகும்.</span></div>`
+        ).join(""));
+
+  el.innerHTML = `<div class="lang-ta">${html}</div>`;
+}
+
+// ----------------------------------------------------------------
+// TASK 16 — கர்மிக பாடங்கள்: ராகு-கேது அச்சு, ஆத்மகாரகன், இஷ்ட தெய்வம்
+// ----------------------------------------------------------------
+const RAHU_KETU_AXIS = [
+  { r: "மேஷ ராகு: முன்னணி, சுதந்திரம், தைரியம் — ஆன்மாவின் திசை.", k: "கேது துலாவில்: கடந்த பிறவியில் மற்றவரையே சார்ந்தீர்கள்.", l: "சுயமுன்னேற்றமும் தனித்த முடிவெடுப்பும் இந்த ஜன்மத்தின் கர்மம்." },
+  { r: "ரிஷப ராகு: நிலையான செல்வம், இயற்கை ரசனை, மண்ணோடு வாழ்வு.", k: "கேது விருச்சிகத்தில்: ஆழமான மாற்றங்களிலும் ரகசியத்திலும் கடந்த பிறவி.", l: "எளிமையான மகிழ்ச்சியிலும் நிலையான சொத்திலும் ஆன்மா திருப்தி காணும்." },
+  { r: "மிதுன ராகு: அறிவு சேகரிப்பு, பேச்சுத்திறன், பன்முகத்தன்மை.", k: "கேது தனுசில்: முன்னிறவியில் தத்துவமும் மதமும் கட்டிய கோட்டை.", l: "நடைமுறை அறிவும் நேரடி தகவல் பரிமாற்றமும் இந்த பிறவியின் பாடம்." },
+  { r: "கடக ராகு: குடும்பம், கரிசனம், நினைவாற்றல், உணர்ச்சி ஆழம்.", k: "கேது மகரத்தில்: அந்தஸ்தும் தொழில் அதிகாரமும் கடந்த பிறவியை நிரப்பின.", l: "மனித உறவுகளில் கரிசனம் காட்டுவதும் தாய்மை/பாசம் வெளிப்படுத்துவதும் கர்மம்." },
+  { r: "சிம்ம ராகு: படைப்பாற்றல், சுய வெளிப்பாடு, கம்பீரமான தலைமை.", k: "கேது கும்பத்தில்: சமூக சேவையிலும் கூட்டு நலனிலும் கடந்த பிறவி கழிந்தது.", l: "தனிமனித திறமை வெளிப்படுத்துவதும் ஆக்கப்பூர்வ வாழ்வும் ஆன்மாவின் விருப்பம்." },
+  { r: "கன்னி ராகு: நுட்பமான ஆராய்ச்சி, சேவை, நடைமுறை தீர்வுகள்.", k: "கேது மீனத்தில்: ஆன்மீகத்திலும் கற்பனையிலும் கடந்த ஜன்மம் உழன்றது.", l: "யதார்த்த சிந்தனையும் சேவா மனமும் இந்த பிறவியின் மூல வழி." },
+  { r: "துலா ராகு: கூட்டு முயற்சி, நீதி, சமன்பாடு, உறவு வளர்ப்பு.", k: "கேது மேஷத்தில்: ஒற்றை வீரனாக போரிட்ட கடந்த பிறவி.", l: "கூட்டு முயற்சியிலும் நீதியிலும் ஆன்மா இந்த பிறவியில் பூரணமாகும்." },
+  { r: "விருச்சிக ராகு: ஆழமான மாற்றம், ரகசிய ஞானம், உளவியல் பார்வை.", k: "கேது ரிஷபத்தில்: நிலையான சொகுசு மட்டுமே கடந்த பிறவியின் நோக்கம்.", l: "மறைவானதை வெளிப்படுத்துவதும் உள்ளான மாற்றத்தை ஏற்பதும் கர்மம்." },
+  { r: "தனுர் ராகு: உயர் ஞானம், தர்மம், வெளிநாட்டு அனுபவம், தத்துவ தேடல்.", k: "கேது மிதுனத்தில்: சிந்தனையில் மட்டுமே மூழ்கிய கடந்த பிறவி.", l: "உயர்கல்வியும் அர்த்தமான வாழ்க்கை தேடலும் இந்த பிறவியின் கட்டளை." },
+  { r: "மகர ராகு: தொழில் உயர்வு, நிர்வாக திறமை, சமூக அந்தஸ்து.", k: "கேது கடகத்தில்: குடும்பமும் உணர்ச்சியும் கடந்த பிறவியை ஆண்டன.", l: "கடும் உழைப்பும் தொழில் சாதனையும் இந்த பிறவியில் ஆன்மாவைப் பூர்ணமாக்கும்." },
+  { r: "கும்ப ராகு: சமூக புரட்சி, தொழில்நுட்பம், மனித சேவை, நட்பு வலை.", k: "கேது சிம்மத்தில்: சுய பெருமிதமும் படைப்பாற்றலும் கடந்த பிறவி.", l: "சமூகத்தின் மாற்றத்திற்காக உழைப்பது இந்த பிறவியின் ஆன்மீக வழி." },
+  { r: "மீன ராகு: ஆன்மீக ஆழம், கலை, கருணை, சரண் அடைதல்.", k: "கேது கன்னியில்: கடுமையான பகுப்பாய்வு மட்டுமே கடந்த பிறவி.", l: "கலையும் கருணையும் ஆன்மீக சரணாகதியும் இந்த பிறவியில் முழுமை தரும்." }
+];
+
+const ISHTADEVATA_BY_KETU_SIGN = [
+  "விரிடை கேது: சிவன் / வேல் முருகன் வழிபாடு பரிந்துரை",
+  "ரிஷப கேது: மஹாலக்ஷ்மி / அன்னபூரணி வழிபாடு",
+  "மிதுன கேது: விஷ்ணு / நாராயண வழிபாடு",
+  "கடக கேது: சக்தி / காளி / துர்கா வழிபாடு",
+  "சிம்ம கேது: சூரிய நாராயண வழிபாடு",
+  "கன்னி கேது: திருமால் / விஷ்ணு வழிபாடு",
+  "துலா கேது: சிவலிங்க வழிபாடு",
+  "விருச்சிக கேது: ஹனுமான் / பைரவர் வழிபாடு",
+  "தனுர் கேது: தட்சிணாமூர்த்தி / குரு வழிபாடு",
+  "மகர கேது: சனிஸ்வரன் / ஐயனார் வழிபாடு",
+  "கும்ப கேது: சோமஸ்கந்தர் / சிவன் வழிபாடு",
+  "மீன கேது: அனந்தசயன விஷ்ணு வழிபாடு"
+];
+
+function renderKarmicReadings(birthData) {
+  const el = document.getElementById("report-karmic");
+  if (!el) return;
+  const lagnaSign = Math.floor(birthData.lagna / 30) % 12;
+  const rahuSign = Math.floor(birthData.rahu / 30) % 12;
+  const ketuSign = Math.floor(birthData.ketu / 30) % 12;
+
+  // Atmakaraka: highest lon%30 among 7 planets
+  const p7 = ["sun","moon","mars","mercury","jupiter","venus","saturn"];
+  let akP = "sun", akDeg = 0;
+  p7.forEach(p => { const d = birthData[p] % 30; if (d > akDeg) { akDeg = d; akP = p; } });
+  const akSign = Math.floor(birthData[akP] / 30) % 12;
+  const akHouse = (akSign - lagnaSign + 12) % 12 + 1;
+  const akNavSgn = Math.floor(birthData[akP] / (30/9)) % 12;
+
+  const akDescs = {
+    sun: "சூரியன் ஆத்மகாரகன் — ஆன்மா அதிகாரம், அங்கீகாரம், தலைமை வழியில் மோட்சம் தேடுகிறது. அகங்காரம் கரைந்தால் மட்டுமே உண்மையான உயர்வு.",
+    moon: "சந்திரன் ஆத்மகாரகன் — கருணை, உணர்ச்சி நுட்பம், மனித நலன் வழியில் ஆன்மா பூரணமாகும். மனதின் ஆழத்தை நோக்கிய பயணமே மோட்சப் பாதை.",
+    mars: "செவ்வாய் ஆத்மகாரகன் — தைரியம், முன்னேடுப்பு, அக்னி மனப்பான்மை வழியில் ஆன்மா வளரும். போரிடாமல் பொறுமையோடு தொடர்வது கர்மம்.",
+    mercury: "புதன் ஆத்மகாரகன் — அறிவு, சொல் சக்தி, தகவல் வழியில் ஆன்மா தனிப் பாதை கண்டுபிடிக்கும். சொற்களால் உலகை மாற்றுவது இப்பிறவியின் கொடை.",
+    jupiter: "குரு ஆத்மகாரகன் — ஞானம், தர்மம், பரோபகாரம் வழியில் ஆன்மா உச்சத்தை அடையும். ஆசிரியர் போல வாழ்வது மோட்சத்திற்கான நேர்வழி.",
+    venus: "சுக்கிரன் ஆத்மகாரகன் — அன்பு, கலை, அழகு வழியில் ஆன்மா திருப்தி காண்கிறது. உலகின் அழகை ரசித்து வாழ்வது இப்பிறவியின் தர்மம்.",
+    saturn: "சனி ஆத்மகாரகன் — உழைப்பு, ஒழுக்கம், கர்மக் கடன் தீர்ப்பு வழியில் ஆன்மா முன்னேறும். கடுமையான வாழ்க்கை அனுபவங்களே ஆன்மீகத் தங்கம்."
+  };
+
+  const axis = RAHU_KETU_AXIS[rahuSign];
+  const ishtaDev = ISHTADEVATA_BY_KETU_SIGN[ketuSign];
+  const nakDeity = NAK_DEITIES[Math.floor(birthData.ketu / (360/27)) % 27];
+  const rHouse = (rahuSign - lagnaSign + 12) % 12 + 1;
+  const kHouse = (ketuSign - lagnaSign + 12) % 12 + 1;
+
+  el.innerHTML = `<div class="lang-ta" style="display:flex;flex-direction:column;gap:1.75rem;">
+    <div>
+      <h4 style="color:var(--primary-gold);margin-bottom:0.75rem;">ஆத்மகாரகன் — ஜைமினி முறை</h4>
+      <div class="detail-list">
+        <div class="detail-item"><span class="detail-key">ஆத்மகாரகன்</span>
+          <span class="detail-val" style="color:var(--primary-gold);font-weight:700;">${planetNamesTa[akP]} (${akDeg.toFixed(1)}° — அதிக பாகை)</span></div>
+        <div class="detail-item"><span class="detail-key">நிலை</span>
+          <span class="detail-val">${RASIS[akSign].nameTa}, லக்னத்திற்கு ${akHouse}-ம் வீடு</span></div>
+        <div class="detail-item"><span class="detail-key">காராகாம்சம் (D9)</span>
+          <span class="detail-val">${RASIS[akNavSgn].nameTa} — ${RASIS[akNavSgn].lordTa} ஆட்சி வீடு</span></div>
+      </div>
+      <p class="reading-text" style="margin-top:0.75rem;">${akDescs[akP]}</p>
+    </div>
+    <div>
+      <h4 style="color:var(--primary-gold);margin-bottom:0.75rem;">ராகு-கேது அச்சு — கர்மிக பாடங்கள்</h4>
+      <div class="detail-list" style="margin-bottom:0.75rem;">
+        <div class="detail-item"><span class="detail-key">ராகு</span>
+          <span class="detail-val">${RASIS[rahuSign].nameTa}, ${rHouse}-ம் வீடு</span></div>
+        <div class="detail-item"><span class="detail-key">கேது</span>
+          <span class="detail-val">${RASIS[ketuSign].nameTa}, ${kHouse}-ம் வீடு</span></div>
+      </div>
+      <div style="padding:1rem;background:rgba(229,193,88,0.04);border:1px solid rgba(229,193,88,0.15);border-radius:var(--radius-md);">
+        <p class="reading-text" style="margin-bottom:0.5rem;"><strong>இன்னிறவி திசை (ராகு):</strong> ${axis.r}</p>
+        <p class="reading-text" style="margin-bottom:0.5rem;"><strong>கடந்த பிறவி (கேது):</strong> ${axis.k}</p>
+        <p class="reading-text"><strong>கர்மப் பாடம்:</strong> ${axis.l}</p>
+      </div>
+    </div>
+    <div>
+      <h4 style="color:var(--primary-gold);margin-bottom:0.75rem;">இஷ்ட தெய்வம் பரிந்துரை</h4>
+      <p class="reading-text">${ishtaDev}. கேது நட்சத்திர தேவதை <strong>${nakDeity}</strong> — இவர்களுக்குரிய கோயில்களில் தொடர் வழிபாடு கர்மச் சுமைகளை லாகவமாக்கி ஆன்மீக முன்னேற்றம் தரும்.</p>
+    </div>
+  </div>`;
+}
+
+// ----------------------------------------------------------------
+// TASK 17 — வாழ்க்கை விவர பகுப்பாய்வு
+// ----------------------------------------------------------------
+const KALAPURUSHA_BODY = [
+  "தலை/மூளை", "முகம்/தொண்டை/கழுத்து", "தோள்/கை/நுரையீரல்", "நெஞ்சு/வயிறு",
+  "இதயம்/முதுகு", "குடல்/வயிறு (கீழ்)", "இடுப்பு/சிறுநீரகம்", "பிறப்பு உறுப்பு",
+  "தொடை/ஆமணக்கு", "மண்டி/எலும்பு", "கணுக்கால்", "பாதம்"
+];
+
+function renderLifeAreaDetail(birthData) {
+  const el = document.getElementById("report-lifearea");
+  if (!el) return;
+  const lagnaSign = Math.floor(birthData.lagna / 30) % 12;
+  const allP = ["sun","moon","mars","mercury","jupiter","venus","saturn","rahu","ketu"];
+  const sign = {};
+  allP.forEach(p => { sign[p] = Math.floor(birthData[p]/30)%12; });
+
+  const houseOf = p => (sign[p] - lagnaSign + 12) % 12 + 1;
+  const hSt = p => getPlanetState(p, sign[p]);
+
+  // 1. Body vulnerability: find signs with Saturn/Rahu/Ketu/debilitated planets
+  const vulnSigns = new Set();
+  ["saturn","rahu","ketu"].forEach(p => vulnSigns.add(sign[p]));
+  ["sun","moon","mars","mercury","jupiter","venus","saturn"].forEach(p => {
+    if (hSt(p) === "debilitated") vulnSigns.add(sign[p]);
+  });
+  // Also lagna lord if debilitated
+  const lagnaLord = SIGN_LORDS[lagnaSign];
+  if (hSt(lagnaLord) === "debilitated") vulnSigns.add(sign[lagnaLord]);
+
+  const vulnParts = [...vulnSigns]
+    .map(s => `${RASIS[s].nameTa} ராசி → ${KALAPURUSHA_BODY[s]}`)
+    .join(", ");
+
+  // 2. Income paths: 2nd/11th lords and their positions
+  const lord2 = SIGN_LORDS[(lagnaSign+1)%12];
+  const lord11 = SIGN_LORDS[(lagnaSign+10)%12];
+  const h2Pos = houseOf(lord2);
+  const h11Pos = houseOf(lord11);
+  const incomeKarakas = { sun:"அரசு/அதிகாரம்/நிர்வாகம்", moon:"நீர்/உணவு/பொதுத் தொடர்பு", mars:"நிலம்/பொறியியல்/ராணுவம்", mercury:"வியாபாரம்/கணக்கு/ஐடி", jupiter:"கல்வி/நிதி/ஆலோசனை", venus:"கலை/சொகுசு/அழகு", saturn:"உழைப்பு/விவசாயம்/தொழிற்சாலை" };
+  const inc2 = incomeKarakas[lord2] || lord2;
+  const inc11 = incomeKarakas[lord11] || lord11;
+
+  // 3. Spouse: 7th lord + Venus
+  const lord7 = SIGN_LORDS[(lagnaSign+6)%12];
+  const h7Of7Lord = houseOf(lord7);
+  const venSign = sign["venus"];
+  const venD9Sign = Math.floor(birthData.venus / (30/9)) % 12;
+  const spDir = { 0:"கிழக்கு", 1:"தென்கிழக்கு", 2:"வடகிழக்கு", 3:"வடமேற்கு", 4:"வடகிழக்கு", 5:"வடக்கு", 6:"தென்கிழக்கு", 7:"கிழக்கு", 8:"வடகிழக்கு", 9:"மேற்கு", 10:"மேற்கு", 11:"வடமேற்கு" };
+
+  // 4. Career fields (top 3 from 10th lord + D10)
+  const lord10 = SIGN_LORDS[(lagnaSign+9)%12];
+  const d10Sign = Math.floor(birthData[lord10] / 3) % 12; // D10 simplified
+  const careerMap = { sun:["அரசு சேவை","நிர்வாகம்","அரசியல்"], moon:["ஹோட்டல்/உணவு","பொதுத் தொடர்பு","ஏற்றுமதி/இறக்குமதி"], mars:["பொறியியல்","ராணுவம்","நிலமும் சொத்தும்"], mercury:["ஐடி/மென்பொருள்","வியாபாரம்","கணக்கு/தணிக்கை"], jupiter:["கல்வி","நிதி/வங்கி","ஆலோசனை/சட்டம்"], venus:["கலை/திரைப்படம்","அழகு/ஃபேஷன்","சொகுசுப் பொருட்கள்"], saturn:["தொழிற்சாலை/உற்பத்தி","விவசாயம்","கட்டுமானம்/இரும்பு"] };
+  const topCareers = careerMap[lord10] || ["பொதுத் தொழில்"];
+  const secondCareer = careerMap[SIGN_LORDS[(lagnaSign+1)%12]] || [];
+
+  // 5. Travel yogas
+  const in9 = allP.filter(p => houseOf(p) === 9);
+  const in12 = allP.filter(p => houseOf(p) === 12);
+  const in3 = allP.filter(p => houseOf(p) === 3);
+  const lord3 = SIGN_LORDS[(lagnaSign+2)%12];
+  const lord9 = SIGN_LORDS[(lagnaSign+8)%12];
+  const lord12 = SIGN_LORDS[(lagnaSign+11)%12];
+  const foreignYoga = in12.length > 0 || houseOf("rahu") === 12 || houseOf("rahu") === 9 ||
+    hSt(lord12) === "exalted" || hSt(lord9) === "exalted";
+
+  el.innerHTML = `<div class="lang-ta" style="display:flex;flex-direction:column;gap:1.75rem;">
+    <div>
+      <h4 style="color:var(--primary-gold);margin-bottom:0.75rem;">காலபுருஷ உடல் பாதிப்பு அமைப்பு</h4>
+      <p class="reading-text">சனி, ராகு, கேது மற்றும் நீச கிரகங்கள் அமர்ந்த ராசிகள் காலபுருஷ முறையில் உடலின் அந்த உறுப்புகளில் சற்று அதிக கவனம் தேவை என்று குறிக்கின்றன: <strong>${vulnParts || "குறிப்பிட்ட பாதிப்பு இல்லை"}</strong>. இவ்வுறுப்புகளுக்குரிய கிரகங்களை வழிபட்டும் ஆரோக்கிய கவனிப்பால் இக்கமியை சரிசெய்யலாம்.</p>
+    </div>
+    <div>
+      <h4 style="color:var(--primary-gold);margin-bottom:0.75rem;">வருமான வழிகள் (2-ம் & 11-ம் வீட்டு அதிபதி)</h4>
+      <div class="detail-list">
+        <div class="detail-item"><span class="detail-key">2-ம் வீட்டு அதிபதி ${planetNamesTa[lord2]} (${h2Pos}-ல்)</span>
+          <span class="detail-val">${inc2} — இந்தத் துறைகள் தனவரவின் நேரடி மூலங்கள்.</span></div>
+        <div class="detail-item"><span class="detail-key">11-ம் வீட்டு அதிபதி ${planetNamesTa[lord11]} (${h11Pos}-ல்)</span>
+          <span class="detail-val">${inc11} — இந்தத் துறைகள் லாப வரவின் அடிப்படை.</span></div>
+      </div>
+    </div>
+    <div>
+      <h4 style="color:var(--primary-gold);margin-bottom:0.75rem;">துணை / வாழ்க்கைத் துணை இயல்பு</h4>
+      <div class="detail-list">
+        <div class="detail-item"><span class="detail-key">7-ம் வீட்டு அதிபதி ${planetNamesTa[lord7]}</span>
+          <span class="detail-val">${h7Of7Lord}-ம் வீட்டில் ${STATE_NAMES_TA[hSt(lord7)]} — துணையின் முதல் இயல்பு.</span></div>
+        <div class="detail-item"><span class="detail-key">சுக்கிரன் நிலை</span>
+          <span class="detail-val">${RASIS[venSign].nameTa} ராசியில் ${STATE_NAMES_TA[hSt("venus")]} — ${SPOUSE_BY_VENUS_D9[venSign]}</span></div>
+        <div class="detail-item"><span class="detail-key">நவாம்சத்தில் சுக்கிரன்</span>
+          <span class="detail-val">${RASIS[venD9Sign].nameTa} — ${SPOUSE_BY_VENUS_D9[venD9Sign]}</span></div>
+        <div class="detail-item"><span class="detail-key">துணை வரும் திசை</span>
+          <span class="detail-val">${spDir[venSign] || "பொதுவாக"}</span></div>
+      </div>
+    </div>
+    <div>
+      <h4 style="color:var(--primary-gold);margin-bottom:0.75rem;">தொழில் துறை வரிசை (D10 + ஷட்பல அடிப்படை)</h4>
+      <ol style="padding-left:1.25rem;line-height:2;">
+        ${[...topCareers, ...secondCareer.slice(0,2)].slice(0,5).map(c => `<li class="reading-text">${c}</li>`).join("")}
+      </ol>
+      <p class="reading-meta">10-ம் வீட்டு அதிபதி ${planetNamesTa[lord10]} — ${incomeKarakas[lord10] || ""} இவ்வடிப்படையில் மேற்கண்ட துறைகள் அமைவதற்கு சிறந்த யோகம் உண்டு.</p>
+    </div>
+    <div>
+      <h4 style="color:var(--primary-gold);margin-bottom:0.75rem;">பயண / வெளிநாட்டு யோகங்கள்</h4>
+      <div class="detail-list">
+        <div class="detail-item"><span class="detail-key">3-ம் வீட்டில் கிரகங்கள்</span>
+          <span class="detail-val">${in3.length > 0 ? in3.map(p=>planetNamesTa[p]).join(", ") + " — குறுகிய பயணங்கள் அதிகம்" : "குறிப்பிட்ட கிரகம் இல்லை"}</span></div>
+        <div class="detail-item"><span class="detail-key">9-ம் வீட்டில் கிரகங்கள்</span>
+          <span class="detail-val">${in9.length > 0 ? in9.map(p=>planetNamesTa[p]).join(", ") + " — நீண்ட பயணங்கள், தீர்த்த யாத்திரை" : "குறிப்பிட்ட கிரகம் இல்லை"}</span></div>
+        <div class="detail-item"><span class="detail-key">12-ம் வீட்டில் கிரகங்கள்</span>
+          <span class="detail-val">${in12.length > 0 ? in12.map(p=>planetNamesTa[p]).join(", ") + " — வெளிநாட்டு வாசம் / வெளிப்பயணம்" : "குறிப்பிட்ட கிரகம் இல்லை"}</span></div>
+        <div class="detail-item"><span class="detail-key">வெளிநாட்டு யோக முடிவு</span>
+          <span class="detail-val" style="color:${foreignYoga?'#55ff55':'var(--primary-gold)'};">${foreignYoga ? "வலுவான வெளிநாட்டு யோகம் உண்டு — ராகு/9-12 அதிபதிகள் வலுவாக உள்ளனர்." : "குறைந்த வெளிநாட்டு வாய்ப்பு — 9-ம் / 12-ம் வீடு அதிபதிகள் வலுப்படுத்திக்கொள்ளவும்."}</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ----------------------------------------------------------------
+// TASK 14 — கால நிர்ணயம்: விவாக/தொழில்/பிள்ளை/சொத்து/வெளிநாடு
+// ----------------------------------------------------------------
+function renderTimingEngine(birthData) {
+  const el = document.getElementById("report-timing");
+  if (!el || !currentHoroscopeData) return;
+
+  const birthMs = currentHoroscopeData.meta.birthDate.getTime();
+  const lagnaSign = Math.floor(birthData.lagna / 30) % 12;
+  const YEAR_MS_T = 365.25 * 24 * 3600 * 1000;
+  const dasaOrder = ["ketu","venus","sun","moon","mars","rahu","jupiter","saturn","mercury"];
+  const dasaYears = { ketu:7, venus:20, sun:6, moon:10, mars:7, rahu:18, jupiter:16, saturn:19, mercury:17 };
+  const allP = ["sun","moon","mars","mercury","jupiter","venus","saturn","rahu","ketu"];
+  const sign = {}; allP.forEach(p => { sign[p] = Math.floor(birthData[p]/30)%12; });
+  const houseOf = p => (sign[p] - lagnaSign + 12) % 12 + 1;
+
+  // House lords for timing topics
+  const hLord = h => SIGN_LORDS[(lagnaSign + h - 1) % 12];
+  const lords = {
+    marriage: [hLord(7), hLord(2), "venus"],
+    career: [hLord(10), hLord(6), "saturn", "mercury", "sun"],
+    children: [hLord(5), hLord(9), "jupiter"],
+    property: [hLord(4), hLord(12), "mars"],
+    foreign: [hLord(12), hLord(9), "rahu"]
+  };
+
+  // Activates topic if bhukti lord is in the relevant houses or is the house lord
+  function activatesTopic(dasaLord, bhuktiLord, topicLords, targetHouses) {
+    if (topicLords.includes(bhuktiLord) || topicLords.includes(dasaLord)) return true;
+    const bH = houseOf(bhuktiLord);
+    const dH = houseOf(dasaLord);
+    if (targetHouses.includes(bH) || targetHouses.includes(dH)) return true;
+    return false;
+  }
+
+  const topics = [
+    { key:"marriage", label:"திருமண யோக காலங்கள்", houses:[7,2,11], color:"#ff9ad5", icon:"💍" },
+    { key:"career", label:"தொழில் / வெற்றி காலங்கள்", houses:[10,2,11], color:"#79d4ff", icon:"💼" },
+    { key:"children", label:"சந்தான யோக காலங்கள்", houses:[5,9,2], color:"#a3ffb8", icon:"👶" },
+    { key:"property", label:"வீடு / சொத்து காலங்கள்", houses:[4,11,2], color:"var(--primary-gold)", icon:"🏠" },
+    { key:"foreign", label:"வெளிநாடு / வெளிப்பயண யோகம்", houses:[12,9,3], color:"#d4aaff", icon:"✈️" }
+  ];
+
+  // Scan all dasas and bhuktis
+  const nakIdx = Math.floor(birthData.moon / (360/27)) % 27;
+  const elapsedFrac = (birthData.moon % (360/27)) / (360/27);
+  let dasaIdx = nakIdx % 9;
+  let t = birthMs - elapsedFrac * dasaYears[dasaOrder[dasaIdx]] * YEAR_MS_T;
+  const now = Date.now();
+  const maxFutureMs = now + 25 * YEAR_MS_T; // look 25 years ahead
+
+  // Collect favorable windows per topic
+  const windows = { marriage:[], career:[], children:[], property:[], foreign:[] };
+  const fmt = ms => new Date(ms).toLocaleDateString("ta-IN", {year:"numeric",month:"short"});
+  const fmtAge = ms => Math.round((ms - birthMs) / YEAR_MS_T);
+
+  for (let dk = 0; dk < 9; dk++) {
+    const dLord = dasaOrder[dasaIdx];
+    const dEnd = t + dasaYears[dLord] * YEAR_MS_T;
+    let bt = t;
+    let bhuktiIdx = dasaIdx;
+    for (let bk = 0; bk < 9; bk++) {
+      const bLord = dasaOrder[bhuktiIdx];
+      const bDur = (dasaYears[dLord] * dasaYears[bLord] / 120) * YEAR_MS_T;
+      const bEnd = bt + bDur;
+      if (bEnd > now - 2*YEAR_MS_T && bt < maxFutureMs) {
+        topics.forEach(tp => {
+          const activates = activatesTopic(dLord, bLord, lords[tp.key], tp.houses);
+          // Check friendship between dasa & bhukti lords
+          const dFriends = PLANET_FRIENDS[dLord] ? PLANET_FRIENDS[dLord].friends : [];
+          const dEnemies = PLANET_FRIENDS[dLord] ? PLANET_FRIENDS[dLord].enemies : [];
+          const isFriend = dFriends.includes(bLord) || dLord === bLord;
+          const isEnemy = dEnemies.includes(bLord);
+          if (activates && !isEnemy) {
+            windows[tp.key].push({
+              dLord, bLord, start: bt, end: bEnd,
+              quality: isFriend ? "சிறந்த" : "நல்ல",
+              isCur: now >= bt && now < bEnd
+            });
+          }
+        });
+      }
+      bt = bEnd;
+      bhuktiIdx = (bhuktiIdx + 1) % 9;
+    }
+    t = dEnd;
+    dasaIdx = (dasaIdx + 1) % 9;
+  }
+
+  // Render
+  const topicHtml = topics.map(tp => {
+    const ws = windows[tp.key].slice(0, 6); // max 6 windows
+    return `<div style="margin-bottom:1.75rem;">
+      <h4 style="color:${tp.color};margin-bottom:0.75rem;font-family:var(--font-tamil);">${tp.label}</h4>
+      ${ws.length === 0 ? `<p class="reading-meta">குறிப்பிட்ட யோக காலங்கள் நேரடியாக வரவில்லை — ஆனால் முழு ஜாதக பரிசீலனை தேவை.</p>` :
+        `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-family:var(--font-tamil);font-size:0.85rem;">
+          <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+            <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">மகா தசை</th>
+            <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">புக்தி</th>
+            <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">தொடக்கம்</th>
+            <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">முடிவு</th>
+            <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">வயது</th>
+            <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">தரம்</th>
+          </tr></thead>
+          <tbody>
+            ${ws.map(w => `<tr style="${w.isCur?'background:rgba(255,255,255,0.05);':''};border-bottom:1px solid rgba(255,255,255,0.04);">
+              <td style="padding:0.4rem 0.6rem;">${planetNamesTa[w.dLord]}${w.isCur?' <span class="current-tag">நடப்பு</span>':''}</td>
+              <td style="padding:0.4rem 0.6rem;">${planetNamesTa[w.bLord]}</td>
+              <td style="padding:0.4rem 0.6rem;">${fmt(w.start)}</td>
+              <td style="padding:0.4rem 0.6rem;">${fmt(w.end)}</td>
+              <td style="padding:0.4rem 0.6rem;">${fmtAge(w.start)}–${fmtAge(w.end)}</td>
+              <td style="padding:0.4rem 0.6rem;color:${w.quality==='சிறந்த'?'#55ff55':'var(--primary-gold)'};">${w.quality}</td>
+            </tr>`).join("")}
+          </tbody>
+        </table></div>`}
+    </div>`;
+  }).join("");
+
+  el.innerHTML = `<div class="lang-ta">${topicHtml}
+    <p class="reading-meta" style="margin-top:1rem;border-top:1px solid rgba(255,255,255,0.07);padding-top:0.75rem;">மேற்கண்ட காலங்கள் தசா-புக்தி அதிபதிகளின் வீட்டு உறவை அடிப்படையாகக் கொண்ட ஒரு பொதுவான கால நிர்ணயம். தனிப்பட்ட விதி தீர்க்கமாக அறிய கோசாரம் (நடப்பு கிரக நிலை) மற்றும் சரியான பிறப்பு நேரத்துடன் விரிவான ஜாதக பரிசீலனை அவசியம்.</p>
+  </div>`;
+}
+
+// ----------------------------------------------------------------
+// TASK 18 — முன்கணிப்பு நாட்காட்டி (3 மாதங்கள் — விரிவான நாள் வாரிவரிசை)
+// ----------------------------------------------------------------
+const TAMIL_MONTHS_CAL = ["ஜனவரி","பிப்ரவரி","மார்ச்","ஏப்ரல்","மே","ஜூன்","ஜூலை","ஆகஸ்ட்","செப்டம்பர்","அக்டோபர்","நவம்பர்","டிசம்பர்"];
+const WEEK_DAYS_SHORT = ["ஞா","தி","செ","பு","வி","வெ","ச"];
+const PANCHANG_TITHI_SHORT = ["பிர","து","தி","ச","பஞ்","ஷஷ்","சப்","அஷ்","நவ","த","ஏ","தவா","தேர","சது","பூர்","பிர","து","தி","ச","பஞ்","ஷஷ்","சப்","அஷ்","நவ","த","ஏ","தவா","தேர","சது","அம"];
+
+function computeDayData(jd, janmaNak, janmaRasi) {
+  try {
+    const moonLon = VAKYA.trueMoon(jd);
+    const sunLon = VAKYA.trueSun(jd);
+    const nak = Math.floor(moonLon / (360/27)) % 27;
+    const moonRasi = Math.floor(moonLon / 30) % 12;
+    const tara = taraOf(janmaNak, nak);
+    const chandraHouse = (moonRasi - janmaRasi + 12) % 12 + 1;
+    const taraGood = TARA_NAMES[tara].good;
+    const chandraGood = [1,3,6,7,10,11].includes(chandraHouse);
+    const chandraBad = [4,8,12].includes(chandraHouse);
+    // Tithi
+    let tithiAngle = (moonLon - sunLon + 360) % 360;
+    const tithiNum = Math.floor(tithiAngle / 12) % 30;
+    return { nak, moonRasi, tara, taraGood, chandraGood, chandraBad, tithiNum };
+  } catch(e) { return null; }
+}
+
+function renderForecastCalendar() {
+  const el = document.getElementById("forecast-calendar");
+  if (!el || typeof VAKYA === "undefined" || !currentHoroscopeData) return;
+
+  const janmaNak = Math.floor(currentHoroscopeData.birth.moon / (360/27)) % 27;
+  const janmaRasi = Math.floor(currentHoroscopeData.birth.moon / 30) % 12;
+  const today = new Date();
+  const year0 = today.getFullYear();
+  const month0 = today.getMonth(); // 0-indexed
+
+  let html = `<p class="reading-meta" style="margin-bottom:1rem;">தாராபலம் + சந்திரபலம் கொண்டு ஒவ்வொரு நாளும் வண்ண குறியீட்டுடன் காட்டப்படுகிறது. <span style="color:#55ff55;">●</span> இரண்டும் சாதகம் &nbsp; <span style="color:var(--primary-gold);">●</span> ஒன்று சாதகம் &nbsp; <span style="color:#ff5555;">●</span> இரண்டும் பாதகம் &nbsp; <span style="background:rgba(229,193,88,0.15);padding:0 4px;border-radius:3px;color:var(--primary-gold);">B</span> இன்றைய நாள்</p>`;
+
+  for (let mi = 0; mi < 3; mi++) {
+    let y = year0, m = month0 + mi;
+    if (m > 11) { m -= 12; y += 1; }
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    const firstDow = new Date(y, m, 1).getDay();
+    const todayDate = (y === year0 && m === today.getMonth()) ? today.getDate() : -1;
+
+    html += `<div><h4 style="color:var(--primary-gold);margin-bottom:0.75rem;font-family:var(--font-tamil);">${TAMIL_MONTHS_CAL[m]} ${y}</h4>`;
+
+    // Calendar legend row
+    html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">`;
+    WEEK_DAYS_SHORT.forEach(d => { html += `<div style="text-align:center;font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.5);padding:4px 0;">${d}</div>`; });
+    html += `</div>`;
+
+    // Grid cells
+    html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">`;
+
+    // Empty cells before 1st
+    for (let e = 0; e < firstDow; e++) {
+      html += `<div style="height:52px;"></div>`;
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dt = new Date(y, m, day, 12, 0, 0);
+      const jd = VAKYA.jdFromDate(dt);
+      const dd = computeDayData(jd, janmaNak, janmaRasi);
+      const isToday = day === todayDate;
+
+      let dotColor = "rgba(255,255,255,0.15)";
+      let bgColor = "rgba(255,255,255,0.02)";
+      let taraLabel = "";
+      let nakLabel = "";
+
+      if (dd) {
+        const bothGood = dd.taraGood && dd.chandraGood;
+        const bothBad = !dd.taraGood && dd.chandraBad;
+        dotColor = bothGood ? "#55ff55" : bothBad ? "#ff5555" : "var(--primary-gold)";
+        bgColor = bothGood ? "rgba(85,255,85,0.06)" : bothBad ? "rgba(255,85,85,0.06)" : "rgba(229,193,88,0.04)";
+        taraLabel = TARA_NAMES[dd.tara].name.split(" ")[0];
+        nakLabel = NAKSHATRAS[dd.nak].nameTa.slice(0,4);
+      }
+
+      html += `<div style="background:${bgColor};border:1px solid ${isToday?'var(--primary-gold)':'rgba(255,255,255,0.06)'};border-radius:4px;padding:3px 4px;min-height:52px;position:relative;cursor:default;" title="${dd?NAKSHATRAS[dd.nak].nameTa+' — '+TARA_NAMES[dd.tara].name:''}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <span style="font-size:0.9rem;font-weight:${isToday?'800':'500'};color:${isToday?'var(--primary-gold)':'rgba(255,255,255,0.8)'};">${day}${isToday?' ★':''}</span>
+          <span style="width:8px;height:8px;border-radius:50%;background:${dotColor};display:inline-block;margin-top:2px;flex-shrink:0;"></span>
+        </div>
+        ${dd ? `<div style="font-size:0.62rem;color:rgba(255,255,255,0.55);line-height:1.3;margin-top:1px;">${nakLabel}</div>
+        <div style="font-size:0.6rem;color:${dotColor};line-height:1.2;">${taraLabel}</div>` : ''}
+      </div>`;
+    }
+
+    html += `</div></div>`; // close grid + month div
+  }
+
+  // Monthly summary table
+  html += `<div style="margin-top:1.5rem;">
+    <h4 style="color:var(--primary-gold);margin-bottom:0.75rem;">3-மாத சாதக நாட்கள் சுருக்கம்</h4>
+    <div class="detail-list">`;
+
+  for (let mi = 0; mi < 3; mi++) {
+    let y = year0, m = month0 + mi;
+    if (m > 11) { m -= 12; y += 1; }
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    let goodDays = 0, badDays = 0;
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dt = new Date(y, m, day, 12, 0, 0);
+      const jd = VAKYA.jdFromDate(dt);
+      const dd = computeDayData(jd, janmaNak, janmaRasi);
+      if (dd) {
+        if (dd.taraGood && dd.chandraGood) goodDays++;
+        else if (!dd.taraGood && dd.chandraBad) badDays++;
+      }
+    }
+    html += `<div class="detail-item">
+      <span class="detail-key">${TAMIL_MONTHS_CAL[m]} ${y}</span>
+      <span class="detail-val"><span style="color:#55ff55;">${goodDays} சிறந்த நாட்கள்</span> / <span style="color:#ff5555;">${badDays} தவிர்க்க வேண்டிய நாட்கள்</span> / ${daysInMonth-goodDays-badDays} நடுத்தர நாட்கள்</span>
+    </div>`;
+  }
+
+  html += `</div></div>`;
+
+  // Best days list for current month
+  html += `<div style="margin-top:1.5rem;">
+    <h4 style="color:var(--primary-gold);margin-bottom:0.75rem;">இந்த மாதத்தின் சிறந்த நாட்கள் (தாரா + சந்திரபலம் இரண்டும் சாதகம்)</h4>
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">`;
+
+  const cm = month0, cy = year0;
+  const cdim = new Date(cy, cm+1, 0).getDate();
+  for (let day = 1; day <= cdim; day++) {
+    const dt = new Date(cy, cm, day, 12, 0, 0);
+    const jd = VAKYA.jdFromDate(dt);
+    const dd = computeDayData(jd, janmaNak, janmaRasi);
+    if (dd && dd.taraGood && dd.chandraGood) {
+      const dow = new Date(cy, cm, day).getDay();
+      html += `<span style="background:rgba(85,255,85,0.12);border:1px solid rgba(85,255,85,0.3);border-radius:6px;padding:0.25rem 0.6rem;font-size:0.82rem;color:#55ff55;">${day} ${TAMIL_MONTHS_CAL[cm]} (${WEEK_DAYS_SHORT[dow]}) — ${NAKSHATRAS[dd.nak].nameTa}</span>`;
+    }
+  }
+
+  html += `</div></div>`;
+
+  el.innerHTML = `<div class="lang-ta">${html}</div>`;
+}
+
+// ----------------------------------------------------------------
+// TASK 18b — வருஷ பலன் & 12-மாத அட்டவணை
+// ----------------------------------------------------------------
+function renderVarushaAndMonthTable() {
+  const el = document.getElementById("report-varusha");
+  if (!el || !currentHoroscopeData || typeof VAKYA === "undefined") return;
+
+  const birthData = currentHoroscopeData.birth;
+  const lagnaSign = Math.floor(birthData.lagna / 30) % 12;
+  const moonSign = Math.floor(birthData.moon / 30) % 12;
+  const now = new Date();
+
+  // Tamil New Year (Chithirai 1) — approx April 14
+  const tamilNewYearMs = new Date(now.getFullYear(), 3, 14).getTime(); // April 14
+  const tamilNYDow = new Date(tamilNewYearMs).getDay();
+  const varushaLords = ["ஞாயிறு","திங்கள்","செவ்வாய்","புதன்","வியாழன்","வெள்ளி","சனி"];
+  const varushaLordKeys = ["sun","moon","mars","mercury","jupiter","venus","saturn"];
+  const varushaDescriptions = [
+    "சூரிய வருடம் (பிங்கள): தலைமை, அங்கீகாரம் — அரசு நலன்கள் சிறக்கும்.",
+    "சந்திர வருடம் (விளம்பி): மன அமைதி, குடும்ப மங்களம் — உணர்ச்சி சமன்பாடு சிறக்கும்.",
+    "செவ்வாய் வருடம் (ரக்த): ஆற்றல், போட்டிகளில் வெற்றி — விடாமுயற்சி தேவை.",
+    "புதன் வருடம் (குரோதி): கல்வி, வியாபாரம் — அறிவுசார் வளர்ச்சி சிறக்கும்.",
+    "குரு வருடம் (விக்ருதி): ஞானம், செல்வம், குடும்ப விருத்தி — உன்னத காலம்.",
+    "சுக்கிர வருடம் (ஆனந்த): காதல், கலை, சொகுசு — மகிழ்ச்சி நிறைந்த காலம்.",
+    "சனி வருடம் (ரக்ஷஸ): உழைப்பு, கட்டுப்பாடு, கர்மக் கடன் — பொறுமை அவசியம்."
+  ];
+  const varushaLordKey = varushaLordKeys[tamilNYDow];
+
+  // Current dasa for yearly reading
+  const cur = computeCurrentDasaBhukti(birthData.moon, currentHoroscopeData.meta.birthDate.getTime(), now.getTime());
+
+  // 12-month sun transit rasi table
+  const sunMonths = [];
+  for (let m = 0; m < 12; m++) {
+    const dt = new Date(now.getFullYear(), now.getMonth() + m, 15, 12, 0, 0);
+    let yr = dt.getFullYear(), mo = dt.getMonth();
+    if (mo > 11) { mo -= 12; yr++; }
+    const dtFixed = new Date(yr, mo, 15, 12, 0, 0);
+    let sunRasi = 0;
+    if (typeof VAKYA !== "undefined") {
+      const jd = VAKYA.jdFromDate(dtFixed);
+      const sunLon = VAKYA.trueSun(jd);
+      sunRasi = Math.floor(sunLon / 30) % 12;
+    }
+    const sunFromMoon = (sunRasi - moonSign + 12) % 12 + 1;
+    const moonPalan = GURU_GOCHARA_TA[sunFromMoon - 1] || ""; // reuse sun transit from moon position
+    sunMonths.push({
+      month: TAMIL_MONTHS_CAL[mo], year: yr,
+      sunRasi: RASIS[sunRasi].nameTa,
+      sunFromMoon, moonPalan
+    });
+  }
+
+  el.innerHTML = `<div class="lang-ta">
+    <div style="margin-bottom:1.5rem;">
+      <h4 style="color:var(--primary-gold);margin-bottom:0.75rem;">வருஷ பலன் ${now.getFullYear()}</h4>
+      <div class="detail-list">
+        <div class="detail-item"><span class="detail-key">தமிழ் புத்தாண்டு அதிபதி</span>
+          <span class="detail-val">${varushaLords[tamilNYDow]} (${planetNamesTa[varushaLordKey]})</span></div>
+        <div class="detail-item"><span class="detail-key">வருஷ பொதுப் பலன்</span>
+          <span class="detail-val">${varushaDescriptions[tamilNYDow]}</span></div>
+        <div class="detail-item"><span class="detail-key">நடப்பு தசை</span>
+          <span class="detail-val">${cur ? planetNamesTa[cur.dasaLord] + " தசை / " + planetNamesTa[cur.bhuktiLord] + " புக்தி" : "—"}</span></div>
+      </div>
+    </div>
+    <div>
+      <h4 style="color:var(--primary-gold);margin-bottom:0.75rem;">12-மாத சூரிய கோசார அட்டவணை</h4>
+      <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-family:var(--font-tamil);font-size:0.82rem;">
+        <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">மாதம்</th>
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">சூரியன் ராசி</th>
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">உங்கள் ராசிக்கு</th>
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">சுருக்கப் பலன்</th>
+        </tr></thead>
+        <tbody>
+          ${sunMonths.map((sm, i) => `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);${i===0?'background:rgba(229,193,88,0.05);':''}">
+            <td style="padding:0.4rem 0.6rem;">${sm.month} ${sm.year}${i===0?' ★':''}</td>
+            <td style="padding:0.4rem 0.6rem;">${sm.sunRasi}</td>
+            <td style="padding:0.4rem 0.6rem;">${sm.sunFromMoon}-ல்</td>
+            <td style="padding:0.4rem 0.6rem;color:rgba(255,255,255,0.7);">${sm.moonPalan.slice(0,60)}…</td>
+          </tr>`).join("")}
+        </tbody>
+      </table></div>
+    </div>
+  </div>`;
+}
+
+// ----------------------------------------------------------------
+// Block 3 injector — புதிய பேனல்கள் & அறிக்கை தொகுதிகள்
+// ----------------------------------------------------------------
+function ensureExtraBlocks3() {
+  const shield = '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>';
+  const clock = '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>';
+  const globe = '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>';
+  const heart = '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>';
+  const star = '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>';
+  const cal = '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>';
+
+  // Add to comprehensive report panel
+  const compPanel = document.querySelector("#panel-comprehensive-report .details-panel");
+  if (compPanel && !document.getElementById("report-timing")) {
+    compPanel.insertAdjacentHTML("afterbegin",
+      predBlock("report-timing", "கால நிர்ணயம் — விவாக, தொழில், சந்தான, சொத்து, வெளிநாடு யோக காலங்கள்", clock));
+    compPanel.insertAdjacentHTML("beforeend",
+      predBlock("report-technical", "அஸ்தங்கம், வக்ரம், கண்டாந்தம், கிரக யுத்தம்", shield) +
+      predBlock("report-karmic", "கர்மிக பாடங்கள் — ஆத்மகாரகன், ராகு-கேது அச்சு, இஷ்ட தெய்வம்", star) +
+      predBlock("report-lifearea", "வாழ்க்கை விவரங்கள் — உடல், வருமான வழி, துணை இயல்பு, தொழில் துறை, பயணம்", heart) +
+      predBlock("report-varusha", "வருஷ பலன் & 12-மாத சூரிய கோசார அட்டவணை", cal));
+  }
+
+  // Add forecast calendar as new panel
+  const lastPanel = document.querySelector("#panel-muhurtham") || document.querySelector("#panel-porutham") || document.querySelector("#panel-gochara");
+  if (lastPanel && !document.getElementById("panel-forecast-calendar")) {
+    const sectionSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">';
+    lastPanel.insertAdjacentHTML("afterend", `
+      <div id="panel-forecast-calendar" class="main-tab-panel active" style="margin-bottom:4rem;">
+        <h2 class="section-title">${sectionSvg}${cal}</svg>முன்கணிப்பு நாட்காட்டி — அடுத்த 3 மாதங்கள்</h2>
+        <div class="details-panel">
+          ${predBlock("forecast-calendar", "தினந்தோறும் தாராபலம் & சந்திரபலம் கொண்ட விரிவான நாட்காட்டி", cal)}
+        </div>
+      </div>`);
+  }
+}
+
+// ----------------------------------------------------------------
+// renderAllPredictions மேம்படுத்தல் — புதிய மாட்யூல்கள் சேர்க்கை
+// ----------------------------------------------------------------
+(function patchRenderAll() {
+  const orig = window.renderAllPredictions;
+  window.renderAllPredictions = function() {
+    orig();
+    // விரிவாக்கம் 3 தொகுதிகள்
+    ensureExtraBlocks3();
+    if (!currentHoroscopeData) return;
+    const bd = currentHoroscopeData.birth;
+    renderTimingEngine(bd);
+    renderTechnicalChecks(bd);
+    renderKarmicReadings(bd);
+    renderLifeAreaDetail(bd);
+    renderVarushaAndMonthTable();
+    // Forecast calendar — defer slightly as it's compute-intensive
+    setTimeout(renderForecastCalendar, 100);
+  };
+})();
