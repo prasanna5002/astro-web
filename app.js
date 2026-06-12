@@ -738,6 +738,40 @@ function updateUIFields(data, lngVal, birthDate) {
   document.getElementById("val-star-desc").textContent = nak.desc;
 }
 
+// வர்க்க சக்கர ராசி கணிப்பு (D1, D3, D7, D9, D10, D12, Transit)
+function vargaSignIdx(lon, chartType) {
+  const rasi = Math.floor(lon / 30) % 12;
+  const deg = lon % 30;
+  const isOdd = rasi % 2 === 0; // மேஷம்(0) = ஒற்றை ராசி
+
+  switch (chartType) {
+    case "D9":
+      return Math.floor(lon / (30 / 9)) % 12;
+    case "D3":
+      if (deg < 10) return rasi;
+      if (deg < 20) return (rasi + 4) % 12;
+      return (rasi + 8) % 12;
+    case "D7": {
+      // சப்தாம்சம்: ஒற்றை ராசி — அதே ராசியிலிருந்து; இரட்டை — 7-ம் ராசியிலிருந்து
+      const idx = Math.floor(deg / (30 / 7));
+      return (rasi + (isOdd ? 0 : 6) + idx) % 12;
+    }
+    case "D10": {
+      // தசாம்சம்: ஒற்றை — அதே ராசி; இரட்டை — 9-ம் ராசியிலிருந்து
+      const idx = Math.floor(deg / 3);
+      return (rasi + (isOdd ? 0 : 8) + idx) % 12;
+    }
+    case "D12": {
+      // துவாதசாம்சம்: அதே ராசியிலிருந்து
+      const idx = Math.floor(deg / 2.5);
+      return (rasi + idx) % 12;
+    }
+    default: // D1, Transit
+      return rasi;
+  }
+}
+window.vargaSignIdx = vargaSignIdx;
+
 // Render dynamic South Indian chart SVG
 function renderChartSVG(svg, chartType) {
   svg.innerHTML = ""; // Clear existing grid
@@ -794,18 +828,7 @@ function renderChartSVG(svg, chartType) {
         lon = currentHoroscopeData.birth[planet.key];
       }
       
-      let pSignIdx = 0;
-      if (chartType === "D1" || chartType === "Transit") {
-        pSignIdx = Math.floor(lon / 30) % 12;
-      } else if (chartType === "D9") {
-        pSignIdx = Math.floor(lon / (30 / 9)) % 12;
-      } else if (chartType === "D3") {
-        const rasi = Math.floor(lon / 30) % 12;
-        const deg = lon % 30;
-        if (deg < 10) pSignIdx = rasi;
-        else if (deg < 20) pSignIdx = (rasi + 4) % 12;
-        else pSignIdx = (rasi + 8) % 12;
-      }
+      const pSignIdx = vargaSignIdx(lon, chartType);
       
       if (pSignIdx === signIdx) {
         occupants.push({
@@ -875,6 +898,15 @@ function renderChartSVG(svg, chartType) {
   } else if (chartType === "D3") {
     centerTitleTa = "திரேக்காணம்";
     centerTitleEn = "D3 DREKKANA";
+  } else if (chartType === "D7") {
+    centerTitleTa = "சப்தாம்சம்";
+    centerTitleEn = "D7 SAPTAMSA";
+  } else if (chartType === "D10") {
+    centerTitleTa = "தசாம்சம்";
+    centerTitleEn = "D10 DASAMSA";
+  } else if (chartType === "D12") {
+    centerTitleTa = "துவாதசாம்சம்";
+    centerTitleEn = "D12 DWADASAMSA";
   } else if (chartType === "Transit") {
     centerTitleTa = "கோசாரம்";
     centerTitleEn = "TRANSIT CHART";
@@ -949,18 +981,7 @@ function populatePlanetsTable(tbody, type) {
       lon = currentHoroscopeData.birth[planet.key];
     }
     
-    let rasiIdx = 0;
-    if (type === "D1" || type === "Transit") {
-      rasiIdx = Math.floor(lon / 30) % 12;
-    } else if (type === "D9") {
-      rasiIdx = Math.floor(lon / (30 / 9)) % 12;
-    } else if (type === "D3") {
-      const rasi = Math.floor(lon / 30) % 12;
-      const deg = lon % 30;
-      if (deg < 10) rasiIdx = rasi;
-      else if (deg < 20) rasiIdx = (rasi + 4) % 12;
-      else rasiIdx = (rasi + 8) % 12;
-    }
+    const rasiIdx = vargaSignIdx(lon, type);
     const rasi = RASIS[rasiIdx];
     
     const nakInfo = getNakshatraInfo(lon);

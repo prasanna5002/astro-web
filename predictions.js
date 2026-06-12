@@ -886,7 +886,8 @@ function computePorutham() {
     <div style="padding: 1rem; border: 1px solid ${vColor}; border-radius: var(--radius-md); background: rgba(255,255,255,0.02);">
       <div style="font-size: 1.3rem; font-weight: 800; color: ${vColor}; margin-bottom: 0.3rem;">${score} / 10 பொருத்தம்</div>
       <div class="reading-text">${verdict}</div>
-    </div>`;
+    </div>
+    ${typeof renderAshtakootaHtml === "function" ? renderAshtakootaHtml(boyNak, girlNak, boyRasi, girlRasi) : ""}`;
 }
 window.computePorutham = computePorutham;
 
@@ -933,9 +934,16 @@ function scanMuhurtham() {
         if (ASUBA_TITHIS.includes(tithiBase)) continue;
         if (ASUBA_YOGAS.includes(p.yoga)) continue;
         const jd = VAKYA.jdFromDate(new Date(d.getFullYear(), d.getMonth(), d.getDate(), 9, 0));
-        const moonSign = Math.floor(VAKYA.trueMoon(jd + meta.tz / 24 * 0) / 30) % 12;
+        const moonSign = Math.floor(VAKYA.trueMoon(jd) / 30) % 12;
         if (moonSign === chandrashtamaSign) continue;
-        good.push({ d, p });
+        // தனிநபர் தாராபலம் & சந்திரபலம் சரிபார்ப்பு
+        const janmaStar = getNakshatraInfo(currentHoroscopeData.birth.moon).index;
+        const dayStar = NAKSHATRAS.findIndex(n => n.nameTa === p.nakshatra);
+        const taraIdx = dayStar >= 0 ? taraOf(janmaStar, dayStar) : -1;
+        if (taraIdx >= 0 && !TARA_NAMES[taraIdx].good) continue;
+        const chandraHouse = ((moonSign - natalMoonSign + 12) % 12) + 1;
+        if ([4, 12].includes(chandraHouse)) continue;
+        good.push({ d, p, tara: taraIdx >= 0 ? TARA_NAMES[taraIdx].name : "" });
       } catch (e) { /* அந்த நாளைத் தவிர் */ }
     }
 
@@ -945,12 +953,12 @@ function scanMuhurtham() {
     }
 
     out.innerHTML = `
-      <p class="reading-meta" style="margin-bottom: 1rem;">${good.length} சுப நாட்கள் கண்டறியப்பட்டன (உங்கள் சந்திராஷ்டம நாட்கள் நீக்கப்பட்டுள்ளன). திருமணம் போன்ற முக்கிய முகூர்த்தங்களுக்கு லக்ன சுத்தியுடன் ஜோதிடர் உறுதி செய்வது மரபு.</p>
+      <p class="reading-meta" style="margin-bottom: 1rem;">${good.length} சுப நாட்கள் கண்டறியப்பட்டன — உங்கள் ஜென்ம நட்சத்திரத்திற்கான தாராபலம், சந்திரபலம், சந்திராஷ்டமம் அனைத்தும் சரிபார்க்கப்பட்ட தனிப்பயன் பட்டியல் இது. திருமணம் போன்ற முக்கிய முகூர்த்தங்களுக்கு லக்ன சுத்தியுடன் ஜோதிடர் உறுதி செய்வது மரபு.</p>
       <div class="detail-list">
-        ${good.map(({ d, p }) => `
+        ${good.map(({ d, p, tara }) => `
           <div class="detail-item" style="flex-wrap: wrap; gap: 0.4rem;">
             <span class="detail-key" style="font-weight: 700; color: var(--text-primary);">${d.toLocaleDateString("ta-IN", { year: 'numeric', month: 'long', day: 'numeric' })} — ${p.weekday}</span>
-            <span class="detail-val" style="font-weight: 400; font-size: 0.85rem;">${p.nakshatra} | ${p.tithi} | ${p.yoga} யோகம் | ராகு காலம்: ${p.rahuKalam}</span>
+            <span class="detail-val" style="font-weight: 400; font-size: 0.85rem;">${p.nakshatra}${tara ? ` (<span style="color:#55ff55;">${tara}</span>)` : ""} | ${p.tithi} | ${p.yoga} யோகம் | ராகு காலம்: ${p.rahuKalam}</span>
           </div>`).join("")}
       </div>`;
   }, 30);
@@ -1000,5 +1008,451 @@ function renderAllPredictions() {
   renderRemediesSection(birthData);
   renderLuckySection(birthData);
   renderGocharaSections(birthData, transitData);
+
+  // விரிவாக்கம் 2 — வர்க்கங்கள், தாராபலம், பெயர்ச்சி, பாவம், ஷட்பலம்
+  ensureExtraBlocks();
+  renderVargaCharts(birthData);
+  renderTarabala();
+  renderBhavaTable(birthData);
+  renderShadbala(birthData);
+  // பெயர்ச்சி தேதி கணிப்பு சற்றுக் கனமானது — UI முடங்காமல் பின்னர் இயக்கு
+  setTimeout(renderPeyarchiDates, 50);
 }
 window.renderAllPredictions = renderAllPredictions;
+
+// ==========================================================
+// விரிவாக்கம் 2 — வர்க்கங்கள், தாராபலம், பெயர்ச்சி, பாவம், ஷட்பலம், அஷ்டகூடம்
+// ==========================================================
+
+// ---------- கூடுதல் UI தொகுதிகள் ----------
+function ensureExtraBlocks() {
+  const star = '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>';
+  const grid = '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>';
+  const clock = '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>';
+
+  // கோசாரப் பேனலில்: தாராபலம் + பெயர்ச்சி தேதிகள்
+  const gocharaPanel = document.querySelector("#panel-gochara .details-panel");
+  if (gocharaPanel && !document.getElementById("tarabala-today")) {
+    gocharaPanel.insertAdjacentHTML("afterbegin",
+      predBlock("tarabala-today", "இன்றைய தாராபலம் & சந்திரபலம்", star) +
+      predBlock("peyarchi-dates", "சனி / குரு பெயர்ச்சி தேதிகள்", clock));
+  }
+
+  // ஒட்டுமொத்த அறிக்கையில்: வர்க்கப் பலன்கள், பாவ அட்டவணை, ஷட்பலம்
+  const compPanel = document.querySelector("#panel-comprehensive-report .details-panel");
+  if (compPanel && !document.getElementById("report-varga")) {
+    compPanel.insertAdjacentHTML("beforeend",
+      predBlock("report-varga", "வர்க்க சக்கரப் பலன்கள் (D7, D10, D12)", grid) +
+      predBlock("report-bhava", "பாவ சக்கரம் (சம பாவ முறை)", grid) +
+      predBlock("report-shadbala", "ஷட்பலம் — கிரக பல அட்டவணை", star));
+  }
+
+  // சக்கரங்கள் பேனலில்: D7, D10, D12 சக்கரங்கள்
+  const stack = document.querySelector(".charts-stack");
+  if (stack && !document.getElementById("rasi-chart-svg-d10")) {
+    const mk = (id, title) => `
+      <div class="chart-container-wrapper" style="width: 100%;">
+        <h3 style="color: var(--primary-gold); font-size: 1.15rem; margin-bottom: 0.75rem; text-align: center; font-family: var(--font-tamil), var(--font-astrology); font-weight: 600;">${title}</h3>
+        <div class="chart-container" style="min-height: auto; padding: 1rem;">
+          <svg id="${id}" class="chart-svg" viewBox="0 0 200 200"></svg>
+        </div>
+      </div>`;
+    stack.insertAdjacentHTML("beforeend",
+      mk("rasi-chart-svg-d10", "தசாம்ச சக்கரம் (D10 — தொழில்)") +
+      mk("rasi-chart-svg-d7", "சப்தாம்ச சக்கரம் (D7 — புத்திரம்)") +
+      mk("rasi-chart-svg-d12", "துவாதசாம்ச சக்கரம் (D12 — பெற்றோர்)"));
+  }
+}
+
+// ---------- D7 / D10 / D12 சக்கரங்கள் & பலன்கள் ----------
+function renderVargaCharts(birthData) {
+  ["d7", "d10", "d12"].forEach(t => {
+    const svg = document.getElementById(`rasi-chart-svg-${t}`);
+    if (svg && typeof renderChartSVG === "function") renderChartSVG(svg, t.toUpperCase());
+  });
+
+  const el = document.getElementById("report-varga");
+  if (!el) return;
+  const lagnaSign = Math.floor(birthData.lagna / 30) % 12;
+  const lord10 = SIGN_LORDS[(lagnaSign + 9) % 12];
+  const d10OfLord10 = vargaSignIdx(birthData[lord10], "D10");
+  const d10OfSun = vargaSignIdx(birthData.sun, "D10");
+  const d7OfJup = vargaSignIdx(birthData.jupiter, "D7");
+  const d7Of5Lord = SIGN_LORDS[(lagnaSign + 4) % 12];
+  const d7OfLord5 = vargaSignIdx(birthData[d7Of5Lord], "D7");
+  const d12OfSun = vargaSignIdx(birthData.sun, "D12");
+  const d12OfMoon = vargaSignIdx(birthData.moon, "D12");
+
+  el.innerHTML = `
+    <p style="margin-bottom: 0.6rem;"><strong>தசாம்சம் (D10 — தொழில் நுட்பப் பார்வை):</strong> கர்மாதிபதி ${planetNamesTa[lord10]} தசாம்சத்தில் ${RASIS[d10OfLord10].nameTa} ராசியில் (அதிபதி: ${RASIS[d10OfLord10].lordTa}) அமர்ந்துள்ளார் — தொழில் வளர்ச்சியின் உள் இயல்பு ${RASIS[d10OfLord10].lordTa} காரகத்துவம் சார்ந்த துறைகளில் (உதா: ${RASIS[d10OfLord10].lordTa === "சனி" ? "உழைப்பு/தொழிற்சாலை/நிர்வாகம்" : RASIS[d10OfLord10].lordTa === "புதன்" ? "கணக்கு/தகவல் தொடர்பு/வியாபாரம்" : RASIS[d10OfLord10].lordTa === "குரு" ? "கல்வி/நிதி/ஆலோசனை" : RASIS[d10OfLord10].lordTa === "சுக்கிரன்" ? "கலை/அழகு/சொகுசுப் பொருட்கள்" : RASIS[d10OfLord10].lordTa === "செவ்வாய்" ? "பொறியியல்/காவல்/நிலம்" : RASIS[d10OfLord10].lordTa === "சந்திரன்" ? "மக்கள் தொடர்பு/உணவு/பயணம்" : "அரசு/அதிகாரம்/தலைமை"}) மலரும். சூரியன் D10-ல் ${RASIS[d10OfSun].nameTa}-ல் இருப்பதால் அதிகார வழி அங்கீகாரம் அந்த இயல்பில் அமையும்.</p>
+    <p style="margin-bottom: 0.6rem;"><strong>சப்தாம்சம் (D7 — புத்திர நுட்பப் பார்வை):</strong> புத்திரகாரகன் குரு சப்தாம்சத்தில் ${RASIS[d7OfJup].nameTa}-லும், 5-ம் அதிபதி ${planetNamesTa[d7Of5Lord]} ${RASIS[d7OfLord5].nameTa}-லும் உள்ளனர். ${[0,3,4,8,11].includes(d7OfJup) ? "குரு சுப ராசியில் அமர்ந்திருப்பது சந்தான விருத்திக்கு மிகச் சாதகம்." : "சந்தான விஷயங்களில் குரு வழிபாடு கூடுதல் பலம் சேர்க்கும்."}</p>
+    <p><strong>துவாதசாம்சம் (D12 — பெற்றோர் நுட்பப் பார்வை):</strong> தந்தை காரகன் சூரியன் D12-ல் ${RASIS[d12OfSun].nameTa}-லும், தாய் காரகன் சந்திரன் ${RASIS[d12OfMoon].nameTa}-லும் அமைந்துள்ளனர் — பெற்றோர் வழி பாரம்பரியப் பலன்கள் இவ்விரு ராசி அதிபதிகளின் (${RASIS[d12OfSun].lordTa}, ${RASIS[d12OfMoon].lordTa}) தசா புக்திகளில் சிறப்பாக விளங்கும்.</p>`;
+}
+
+// ---------- தாராபலம் & சந்திரபலம் ----------
+const TARA_NAMES = [
+  { name: "ஜென்ம தாரை", good: false, note: "உடல்/மனப் பளு தரும் நாள் — முக்கியத் தொடக்கங்களைத் தவிர்க்கவும்" },
+  { name: "சம்பத் தாரை", good: true, note: "செல்வம் & வெற்றி தரும் சிறந்த நாள்" },
+  { name: "விபத் தாரை", good: false, note: "இடையூறுகள் வரக்கூடிய நாள் — எச்சரிக்கை" },
+  { name: "க்ஷேம தாரை", good: true, note: "நன்மையும் க்ஷேமமும் தரும் நல்ல நாள்" },
+  { name: "பிரத்யக் தாரை", good: false, note: "எதிர்ப்புகள் கூடும் நாள் — புதியன வேண்டாம்" },
+  { name: "சாதக தாரை", good: true, note: "காரிய சாதனை தரும் மிகச் சிறந்த நாள்" },
+  { name: "வத (நைதன) தாரை", good: false, note: "மிகவும் தவிர்க்க வேண்டிய நாள்" },
+  { name: "மித்ர தாரை", good: true, note: "நட்பு & ஆதரவு கூடும் நல்ல நாள்" },
+  { name: "பரம மித்ர தாரை", good: true, note: "மிக உயர்ந்த அனுகூலம் தரும் நாள்" }
+];
+
+function taraOf(janmaStar, dayStar) {
+  return ((dayStar - janmaStar + 27) % 27) % 9;
+}
+
+function renderTarabala() {
+  const el = document.getElementById("tarabala-today");
+  if (!el || typeof VAKYA === "undefined" || !currentHoroscopeData) return;
+  try {
+    const janmaStar = getNakshatraInfo(currentHoroscopeData.birth.moon).index;
+    const natalMoonSign = Math.floor(currentHoroscopeData.birth.moon / 30) % 12;
+    const jd = VAKYA.jdFromDate(new Date());
+    const moonLon = VAKYA.trueMoon(jd);
+    const todayStar = Math.floor(moonLon / (360 / 27)) % 27;
+    const tara = TARA_NAMES[taraOf(janmaStar, todayStar)];
+    const chandraHouse = ((Math.floor(moonLon / 30) % 12) - natalMoonSign + 12) % 12 + 1;
+    const chandraGood = [1, 3, 6, 7, 10, 11].includes(chandraHouse);
+    const chandraBad = [4, 8, 12].includes(chandraHouse);
+    const tag = (ok, bad) => ok
+      ? '<span style="color:#55ff55;font-weight:700;">சாதகம்</span>'
+      : bad ? '<span style="color:#ff5555;font-weight:700;">பாதகம்</span>' : '<span style="color:var(--primary-gold);font-weight:700;">நடுநிலை</span>';
+    el.innerHTML = `
+      <div class="detail-list">
+        <div class="detail-item"><span class="detail-key">இன்றைய நட்சத்திரம்</span><span class="detail-val">${NAKSHATRAS[todayStar].nameTa}</span></div>
+        <div class="detail-item"><span class="detail-key">தாராபலம் (உங்கள் ${NAKSHATRAS[janmaStar].nameTa} நட்சத்திரத்திலிருந்து)</span><span class="detail-val">${tara.name} — ${tag(tara.good, !tara.good)}</span></div>
+        <div class="detail-item"><span class="detail-key">சந்திரபலம் (சந்திரன் உங்கள் ராசிக்கு ${chandraHouse}-ல்)</span><span class="detail-val">${tag(chandraGood, chandraBad)}</span></div>
+      </div>
+      <p class="reading-meta" style="margin-top: 0.75rem;">${tara.note}. ${chandraBad ? "சந்திரபலமும் இன்று குறைவாக இருப்பதால் முக்கியக் காரியங்களைத் தள்ளிவைப்பது நலம்." : chandraGood ? "சந்திரபலமும் சாதகமாக உள்ளது." : ""} தாராபலம் + சந்திரபலம் இரண்டும் சாதகமான நாளே தனிநபருக்கு உகந்த சுப நாள்.</p>`;
+  } catch (e) {
+    el.textContent = "தாராபலக் கணிப்புக் கிடைக்கவில்லை.";
+  }
+}
+
+// ---------- சனி / குரு பெயர்ச்சி தேதிகள் (நிராயன — drik) ----------
+function siderealLonAt(bodyName, date) {
+  const astroTime = Astronomy.MakeTime(date);
+  const T = astroTime.ut / 36525.0;
+  const T1900 = T + 1.0;
+  const ayanamsha = 22.460148 + 1.396042 * T1900 + 0.000308 * T1900 * T1900;
+  const geo = Astronomy.GeoVector(Astronomy.Body[bodyName], astroTime, true);
+  const ecl = Astronomy.Ecliptic(geo);
+  return ((ecl.elon - ayanamsha) % 360 + 360) % 360;
+}
+
+function findNextSignChange(bodyName, fromDate, maxDays, stepDays) {
+  const startSign = Math.floor(siderealLonAt(bodyName, fromDate) / 30) % 12;
+  let prev = fromDate;
+  for (let d = stepDays; d <= maxDays; d += stepDays) {
+    const t = new Date(fromDate.getTime() + d * 86400000);
+    const sign = Math.floor(siderealLonAt(bodyName, t) / 30) % 12;
+    if (sign !== startSign) {
+      // இருமப் பிரிப்பு — அரை நாள் துல்லியம்
+      let lo = prev.getTime(), hi = t.getTime();
+      while (hi - lo > 43200000) {
+        const mid = (lo + hi) / 2;
+        const s = Math.floor(siderealLonAt(bodyName, new Date(mid)) / 30) % 12;
+        if (s === startSign) lo = mid; else hi = mid;
+      }
+      return { date: new Date(hi), fromSign: startSign, toSign: Math.floor(siderealLonAt(bodyName, new Date(hi + 86400000)) / 30) % 12 };
+    }
+    prev = t;
+  }
+  return null;
+}
+
+function findSaturnReach(targetSign, fromDate, maxDays) {
+  for (let d = 0; d <= maxDays; d += 15) {
+    const t = new Date(fromDate.getTime() + d * 86400000);
+    if (Math.floor(siderealLonAt("Saturn", t) / 30) % 12 === targetSign) {
+      let lo = t.getTime() - 15 * 86400000, hi = t.getTime();
+      while (hi - lo > 86400000) {
+        const mid = (lo + hi) / 2;
+        if (Math.floor(siderealLonAt("Saturn", new Date(mid)) / 30) % 12 === targetSign) hi = mid; else lo = mid;
+      }
+      return new Date(hi);
+    }
+  }
+  return null;
+}
+
+function renderPeyarchiDates() {
+  const el = document.getElementById("peyarchi-dates");
+  if (!el || typeof Astronomy === "undefined" || !currentHoroscopeData) return;
+  try {
+    const now = new Date();
+    const fmt = d => d.toLocaleDateString("ta-IN", { year: 'numeric', month: 'long', day: 'numeric' });
+    const sani = findNextSignChange("Saturn", now, 1300, 5);
+    const guru = findNextSignChange("Jupiter", now, 500, 3);
+
+    let html = `<div class="detail-list">`;
+    if (sani) html += `<div class="detail-item"><span class="detail-key">அடுத்த சனி பெயர்ச்சி</span><span class="detail-val">${RASIS[sani.fromSign].nameTa} → ${RASIS[sani.toSign].nameTa} | ${fmt(sani.date)}</span></div>`;
+    if (guru) html += `<div class="detail-item"><span class="detail-key">அடுத்த குரு பெயர்ச்சி</span><span class="detail-val">${RASIS[guru.fromSign].nameTa} → ${RASIS[guru.toSign].nameTa} | ${fmt(guru.date)}</span></div>`;
+
+    // ஏழரைச் சனி நிலை & நிறைவு
+    const natalMoonSign = Math.floor(currentHoroscopeData.birth.moon / 30) % 12;
+    const saniNow = Math.floor(siderealLonAt("Saturn", now) / 30) % 12;
+    const housePos = (saniNow - natalMoonSign + 12) % 12 + 1;
+    if ([12, 1, 2].includes(housePos)) {
+      const phase = housePos === 12 ? "முதல் (மங்கு சனி)" : housePos === 1 ? "இரண்டாம் (ஜென்ம சனி)" : "இறுதி (விடு சனி)";
+      const end = findSaturnReach((natalMoonSign + 2) % 12, now, 3200);
+      html += `<div class="detail-item"><span class="detail-key">ஏழரைச் சனி நிலை</span><span class="detail-val">${phase} பாகம் நடப்பில்</span></div>`;
+      if (end) html += `<div class="detail-item"><span class="detail-key">உங்கள் ஏழரைச் சனி நிறைவு (தோராயம்)</span><span class="detail-val" style="color: #55ff55;">${fmt(end)}</span></div>`;
+    } else if (housePos === 8) {
+      const end = findSaturnReach((natalMoonSign + 8) % 12, now, 1300);
+      html += `<div class="detail-item"><span class="detail-key">அஷ்டமச் சனி நடப்பில்</span><span class="detail-val">${end ? "நிறைவு (தோராயம்): " + fmt(end) : ""}</span></div>`;
+    } else {
+      html += `<div class="detail-item"><span class="detail-key">ஏழரைச் சனி</span><span class="detail-val">தற்போது இல்லை</span></div>`;
+    }
+    html += `</div><p class="reading-meta" style="margin-top: 0.75rem;">வக்ர (பின்னோக்கு) கதியால் கிரகம் எல்லையை மீண்டும் கடக்கக்கூடும்; தேதிகள் முதல் நுழைவைக் குறிக்கின்றன.</p>`;
+    el.innerHTML = html;
+  } catch (e) {
+    console.error("பெயர்ச்சி கணிப்புப் பிழை:", e);
+    el.textContent = "பெயர்ச்சி தேதிகள் கணிக்க இயலவில்லை.";
+  }
+}
+
+// ---------- பாவ சக்கரம் (சம பாவ முறை) ----------
+function renderBhavaTable(birthData) {
+  const el = document.getElementById("report-bhava");
+  if (!el) return;
+  const lagnaLon = birthData.lagna;
+  const lagnaSign = Math.floor(lagnaLon / 30) % 12;
+  const bhavaOf = lon => Math.floor((((lon - (lagnaLon - 15)) % 360 + 360) % 360) / 30) + 1;
+  const planets = ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn", "rahu", "ketu"];
+
+  let diffs = 0;
+  const rows = planets.map(p => {
+    const rasiHouse = ((Math.floor(birthData[p] / 30) % 12) - lagnaSign + 12) % 12 + 1;
+    const bhava = bhavaOf(birthData[p]);
+    const differs = bhava !== rasiHouse;
+    if (differs) diffs++;
+    return `<div class="detail-item" ${differs ? 'style="background: rgba(229,193,88,0.06); border-radius: 6px; padding: 0.4rem;"' : ''}>
+      <span class="detail-key">${planetNamesTa[p]}</span>
+      <span class="detail-val">ராசி வீடு: ${rasiHouse} | பாவம்: ${bhava}${differs ? ' <span style="color: var(--primary-gold);">★ மாறுபடுகிறது</span>' : ''}</span>
+    </div>`;
+  }).join("");
+
+  el.innerHTML = `
+    <p class="reading-meta" style="margin-bottom: 0.75rem;">லக்ன பாகையை (${formatDMS(lagnaLon % 30)} ${RASIS[lagnaSign].nameTa}) மையமாகக் கொண்ட சம பாவ முறை. ராசி வீட்டிற்கும் பாவத்திற்கும் மாறுபடும் கிரகங்களின் பலன்கள் இரு வீடுகளின் கலவையாக அமையும்.</p>
+    <div class="detail-list">${rows}</div>
+    <p class="reading-meta" style="margin-top: 0.75rem;">${diffs ? `${diffs} கிரகங்கள் ராசி வீட்டிலிருந்து பாவத்தில் மாறுபடுகின்றன — இவற்றின் பலன்களைப் படிக்கும்போது இரு வீடுகளையும் கருத்தில் கொள்ளவும்.` : "அனைத்துக் கிரகங்களும் ராசி வீடுகளிலேயே பாவத்திலும் அமைந்துள்ளன — பலன்கள் தெளிவாக அவ்வீடுகளுக்கே உரியவை."}</p>`;
+}
+
+// ---------- ஷட்பலம் (எளிமைப்படுத்தப்பட்ட கணிப்பு) ----------
+function computeShadbala(birthData, birthDate) {
+  const seven = ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn"];
+  const exaltPoint = { sun: 10, moon: 33, mars: 298, mercury: 165, jupiter: 95, venus: 357, saturn: 200 };
+  const naisargika = { sun: 60, moon: 51.4, venus: 42.9, jupiter: 34.3, mercury: 25.7, mars: 17.1, saturn: 8.6 };
+  const lagnaSign = Math.floor(birthData.lagna / 30) % 12;
+  const lagnaLon = birthData.lagna;
+  const angDist = (a, b) => { const d = Math.abs(((a - b) % 360 + 360) % 360); return d > 180 ? 360 - d : d; };
+
+  // பகல்/இரவு — சூரியன் லக்னத்திற்கு 7-12 வீடுகளில் = பகல்
+  const sunHouse = ((Math.floor(birthData.sun / 30) % 12) - lagnaSign + 12) % 12 + 1;
+  const isDay = sunHouse >= 7;
+
+  // பக்ஷ பலம்
+  const moonElong = ((birthData.moon - birthData.sun) % 360 + 360) % 360;
+  const pakshaAngle = moonElong > 180 ? 360 - moonElong : moonElong;
+  const pb = pakshaAngle / 3; // 0-60
+
+  const digPoint = { jupiter: lagnaLon, mercury: lagnaLon, sun: lagnaLon + 270, mars: lagnaLon + 270, saturn: lagnaLon + 180, moon: lagnaLon + 90, venus: lagnaLon + 90 };
+  const benefics = ["jupiter", "venus", "mercury", "moon"];
+  const aspectOffsets = { sun: [6], moon: [6], mars: [3, 6, 7], mercury: [6], jupiter: [4, 6, 8], venus: [6], saturn: [2, 6, 9] };
+
+  const results = {};
+  seven.forEach(p => {
+    const lon = birthData[p];
+    const sign = Math.floor(lon / 30) % 12;
+    const house = (sign - lagnaSign + 12) % 12 + 1;
+
+    // 1. ஸ்தான பலம்
+    const uccha = (180 - angDist(lon, (exaltPoint[p] + 180) % 360)) / 3;
+    const kendradi = [1, 4, 7, 10].includes(house) ? 60 : [2, 5, 8, 11].includes(house) ? 30 : 15;
+    const prefersEven = (p === "moon" || p === "venus");
+    const oja = ((sign % 2 === 1) === prefersEven) ? 15 : 0;
+    const d9sign = vargaSignIdx(lon, "D9");
+    const ojaD9 = ((d9sign % 2 === 1) === prefersEven) ? 15 : 0;
+    const drek = Math.floor((lon % 30) / 10);
+    const drekBala = (drek === 0 && ["sun", "mars", "jupiter"].includes(p)) || (drek === 1 && ["moon", "venus"].includes(p)) || (drek === 2 && ["mercury", "saturn"].includes(p)) ? 15 : 0;
+    const sthana = uccha + kendradi + oja + ojaD9 + drekBala;
+
+    // 2. திக் பலம்
+    const dig = (180 - angDist(lon, digPoint[p] % 360)) / 3;
+
+    // 3. கால பலம் (நதோன்னத + பக்ஷ)
+    const dayStrong = ["sun", "jupiter", "venus"].includes(p);
+    const nightStrong = ["moon", "mars", "saturn"].includes(p);
+    const natho = p === "mercury" ? 60 : (isDay && dayStrong) || (!isDay && nightStrong) ? 60 : 0;
+    const paksha = p === "sun" ? 60 - pb : benefics.includes(p) ? pb : 60 - pb;
+    const kala = natho + paksha;
+
+    // 4. சேஷ்ட பலம் (வக்ரம்/வேகம்)
+    let cheshta = 30;
+    if (p !== "sun" && p !== "moon" && typeof Astronomy !== "undefined") {
+      try {
+        const bodyName = { mars: "Mars", mercury: "Mercury", jupiter: "Jupiter", venus: "Venus", saturn: "Saturn" }[p];
+        const lon2 = siderealLonAt(bodyName, new Date(birthDate.getTime() + 86400000));
+        let speed = ((lon2 - lon) % 360 + 360) % 360;
+        if (speed > 180) speed -= 360;
+        cheshta = speed < 0 ? 60 : speed < 0.2 ? 45 : speed < 1 ? 30 : 15;
+      } catch (e) { /* இயல்பு மதிப்பு */ }
+    }
+
+    // 5. நைசர்கிக பலம்
+    const nais = naisargika[p];
+
+    // 6. திருக் (பார்வை) பலம் — ராசி அடிப்படைப் பார்வைகள்
+    let drik = 0;
+    seven.forEach(q => {
+      if (q === p) return;
+      const qSign = Math.floor(birthData[q] / 30) % 12;
+      (aspectOffsets[q] || []).forEach(off => {
+        if ((qSign + off) % 12 === sign) drik += benefics.includes(q) ? 10 : -10;
+      });
+    });
+
+    const total = sthana + dig + kala + cheshta + nais + drik;
+    results[p] = { total: Math.round(total), rupas: total / 60 };
+  });
+  return results;
+}
+
+function renderShadbala(birthData) {
+  const el = document.getElementById("report-shadbala");
+  if (!el || !currentHoroscopeData) return;
+  try {
+    const sb = computeShadbala(birthData, currentHoroscopeData.meta.birthDate);
+    const required = { sun: 6.5, moon: 6.0, mars: 5.0, mercury: 7.0, jupiter: 6.5, venus: 5.5, saturn: 5.0 };
+    // எளிமைப்படுத்தப்பட்ட கணிப்பு என்பதால் ஒப்பீட்டு (relative) வரிசையே நம்பகமானது
+    const ranked = Object.keys(sb)
+      .map(p => ({ p, rupas: sb[p].rupas, idx: sb[p].rupas / required[p] }))
+      .sort((a, b) => b.idx - a.idx);
+    const maxIdx = ranked[0].idx;
+    const rows = ranked.map((r, i) => {
+      const pct = Math.round(r.idx / maxIdx * 100);
+      const label = i < 2
+        ? '<span style="color:#55ff55;font-weight:700;">மிக வலுவானது</span>'
+        : pct >= 75 ? '<span style="color:#a0e860;font-weight:700;">வலுவானது</span>'
+        : pct >= 55 ? '<span style="color:var(--primary-gold);font-weight:700;">நடுத்தரம்</span>'
+        : '<span style="color:#ffb347;font-weight:700;">பலம் குறைவு</span>';
+      return `<div class="detail-item" style="flex-wrap: wrap; gap: 0.4rem;">
+        <span class="detail-key" style="min-width: 90px;">${i + 1}. ${planetNamesTa[r.p]}</span>
+        <span class="detail-val" style="flex: 1; display: flex; align-items: center; gap: 0.6rem; justify-content: flex-end;">
+          <span style="flex: 1; max-width: 180px; height: 7px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;"><span style="display: block; width: ${pct}%; height: 100%; background: linear-gradient(90deg, var(--cosmic-purple), var(--primary-gold));"></span></span>
+          ${r.rupas.toFixed(2)} ரூபா — ${label}
+        </span>
+      </div>`;
+    }).join("");
+    el.innerHTML = `
+      <div class="detail-list">${rows}</div>
+      <p class="reading-meta" style="margin-top: 0.75rem;">ஸ்தான-திக்-கால-சேஷ்ட-நைசர்கிக-திருக் ஆகிய ஆறு பலங்களின் எளிமைப்படுத்தப்பட்ட கூட்டுக் கணிப்பு (ஒப்பீட்டு வரிசை). வலுவான கிரகங்களின் தசா-புக்திகள் சிறப்பான பலன் தரும்; உங்கள் ஜாதகத்தின் மிக வலுவான கிரகம்: <strong style="color: var(--primary-gold);">${planetNamesTa[ranked[0].p]}</strong>.</p>`;
+  } catch (e) {
+    console.error("ஷட்பலப் பிழை:", e);
+    el.textContent = "ஷட்பலம் கணிக்க இயலவில்லை.";
+  }
+}
+
+// ---------- அஷ்டகூடம் (நாடி, வர்ணம் உள்ளிட்ட 36 புள்ளிகள்) ----------
+const NADI_GROUPS = (() => {
+  // ஆதி(0)/மத்திய(1)/அந்த்ய(2) — நட்சத்திர வரிசை முறை
+  const map = new Array(27);
+  const adi = [1, 6, 7, 12, 13, 18, 19, 24, 25];
+  const madhya = [2, 5, 8, 11, 14, 17, 20, 23, 26];
+  adi.forEach(n => map[n - 1] = 0);
+  madhya.forEach(n => map[n - 1] = 1);
+  for (let i = 0; i < 27; i++) if (map[i] === undefined) map[i] = 2;
+  return map;
+})();
+const NADI_NAMES = ["ஆதி நாடி", "மத்திய நாடி", "அந்த்ய நாடி"];
+const VARNA_OF_RASI = [1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0]; // 0=பிராமண,1=க்ஷத்திரிய,2=வைசிய,3=சூத்திர (கடகம்=0...)
+const VARNA_NAMES = ["பிராமணம்", "க்ஷத்திரியம்", "வைசியம்", "சூத்திரம்"];
+
+function renderAshtakootaHtml(boyNak, girlNak, boyRasi, girlRasi) {
+  const rows = [];
+  let total = 0;
+  const add = (name, pts, max, note) => { total += pts; rows.push({ name, pts, max, note }); };
+
+  // 1. வர்ணம் (1)
+  const bv = VARNA_OF_RASI[boyRasi], gv = VARNA_OF_RASI[girlRasi];
+  add("வர்ணம்", bv <= gv ? 1 : 0, 1, `மணமகன்: ${VARNA_NAMES[bv]}, மணமகள்: ${VARNA_NAMES[gv]}`);
+
+  // 2. வசியம் (2)
+  const vasyaBG = (VASYA_TABLE[girlRasi] || []).includes(boyRasi);
+  const vasyaGB = (VASYA_TABLE[boyRasi] || []).includes(girlRasi);
+  add("வசியம்", vasyaBG && vasyaGB ? 2 : (vasyaBG || vasyaGB) ? 1 : 0, 2, "பரஸ்பர ஈர்ப்பு மதிப்பீடு");
+
+  // 3. தாரா (3)
+  const taraBG = taraOf(girlNak, boyNak), taraGB = taraOf(boyNak, girlNak);
+  const badTara = t => [2, 4, 6].includes(t); // விபத்(3), பிரத்யக்(5), வதை(7) — 0-அடிப்படை
+  const tPts = (!badTara(taraBG) && !badTara(taraGB)) ? 3 : (!badTara(taraBG) || !badTara(taraGB)) ? 1.5 : 0;
+  add("தாரா (தினம்)", tPts, 3, `${TARA_NAMES[taraBG].name} / ${TARA_NAMES[taraGB].name}`);
+
+  // 4. யோனி (4)
+  const yRel = yoniRelation(NAK_YONI[boyNak], NAK_YONI[girlNak]);
+  add("யோனி", yRel === "same" ? 4 : yRel === "friend" ? 2 : 0, 4, `${NAK_YONI[boyNak][0]} × ${NAK_YONI[girlNak][0]}`);
+
+  // 5. கிரக மைத்ரி (5)
+  const bl = SIGN_LORDS[boyRasi], gl = SIGN_LORDS[girlRasi];
+  let gm;
+  if (bl === gl) gm = 5;
+  else {
+    const bf = PLANET_FRIENDS[bl].friends.includes(gl), gf = PLANET_FRIENDS[gl].friends.includes(bl);
+    const be = PLANET_FRIENDS[bl].enemies.includes(gl), ge = PLANET_FRIENDS[gl].enemies.includes(bl);
+    if (bf && gf) gm = 5;
+    else if (bf || gf) gm = be || ge ? 1 : 4;
+    else if (be && ge) gm = 0;
+    else if (be || ge) gm = 1;
+    else gm = 3;
+  }
+  add("கிரக மைத்ரி", gm, 5, `${planetNamesTa[bl]} × ${planetNamesTa[gl]}`);
+
+  // 6. கணம் (6)
+  const bg = NAK_GANAM[boyNak], gg = NAK_GANAM[girlNak];
+  let gn;
+  if (bg === gg) gn = 6;
+  else if ((bg === 0 && gg === 1) || (bg === 1 && gg === 0)) gn = 5;
+  else if (bg === 2 && gg === 1) gn = 1;
+  else if (bg === 2 && gg === 0) gn = 1;
+  else gn = 0; // பெண் ராட்சச கணம், ஆண் வேறு
+  add("கணம்", gn, 6, `${GANAM_NAMES[bg]} × ${GANAM_NAMES[gg]}`);
+
+  // 7. பாகூடம் / ராசி (7)
+  const d1 = ((boyRasi - girlRasi + 12) % 12) + 1;
+  const d2 = ((girlRasi - boyRasi + 12) % 12) + 1;
+  const badPair = (d1 === 6 || d1 === 8 || d2 === 6 || d2 === 8) || (d1 === 2 || d1 === 12) || (d1 === 5 || d1 === 9);
+  add("பாகூடம் (ராசி)", badPair ? 0 : 7, 7, `ராசி இடைவெளி: ${d1}/${d2}`);
+
+  // 8. நாடி (8)
+  const bn = NADI_GROUPS[boyNak], gnadi = NADI_GROUPS[girlNak];
+  add("நாடி", bn !== gnadi ? 8 : 0, 8, `${NADI_NAMES[bn]} × ${NADI_NAMES[gnadi]}${bn === gnadi ? " — நாடி தோஷம்!" : ""}`);
+
+  let verdict, color;
+  if (total >= 28) { verdict = "மிக உயர்ந்த அஷ்டகூடப் பொருத்தம்"; color = "#55ff55"; }
+  else if (total >= 24) { verdict = "சிறந்த பொருத்தம்"; color = "#a0e860"; }
+  else if (total >= 18) { verdict = "ஏற்கத்தக்க பொருத்தம்"; color = "var(--primary-gold)"; }
+  else { verdict = "அஷ்டகூடப் பொருத்தம் குறைவு"; color = "#ff5555"; }
+  const nadiDosham = bn === gnadi;
+
+  return `
+    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(229,193,88,0.25);">
+      <h4 style="color: var(--primary-gold); margin-bottom: 0.75rem;">மேலதிகப் பொருத்தங்கள் — அஷ்டகூட முறை (நாடி, வர்ணம் உட்பட 36 புள்ளிகள்)</h4>
+      <div class="detail-list" style="margin-bottom: 1rem;">
+        ${rows.map(r => `
+          <div class="detail-item" style="flex-wrap: wrap; gap: 0.4rem;">
+            <span class="detail-key"><strong>${r.name}</strong> — ${r.pts}/${r.max}</span>
+            <span class="detail-val" style="font-weight: 400; font-size: 0.85rem;">${r.note}</span>
+          </div>`).join("")}
+      </div>
+      <div style="padding: 0.9rem; border: 1px solid ${color}; border-radius: var(--radius-md);">
+        <span style="font-size: 1.15rem; font-weight: 800; color: ${color};">${total} / 36 புள்ளிகள்</span> — ${verdict}.
+        ${nadiDosham ? '<div style="color: #ff5555; margin-top: 0.4rem; font-size: 0.88rem;">நாடி தோஷம் இருப்பதால் (வடநாட்டு முறையில் முக்கிய தோஷம்) ஜோதிடர் ஆலோசனை அவசியம்; ஒரே ராசி/நட்சத்திர அமைப்புகளில் இது விலக்குப் பெறலாம்.</div>' : ''}
+      </div>
+    </div>`;
+}
