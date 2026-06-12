@@ -53,6 +53,9 @@ body {
   height: 100%;
   z-index: 0;
   pointer-events: none;
+  /* தனி GPU அடுக்கு — பக்கம் முழுவதும் மீள்வரைதலைத் தவிர்க்கிறது */
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .app-container {

@@ -122,61 +122,55 @@ window.addEventListener("DOMContentLoaded", () => {
   changeLanguage("ta");
 });
 
-// 1. STARRY BACKGROUND CANVAS
+// 1. STARRY BACKGROUND CANVAS — மிதமான மினுமினுப்பு (flicker தவிர்க்க)
 function initStarryBackground() {
   const canvas = document.getElementById("stars-canvas");
   const ctx = canvas.getContext("2d");
-  
+
   let stars = [];
-  const maxStars = 120;
-  
+  const maxStars = 90;
+  let cssW = 0, cssH = 0;
+
   function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cssW = window.innerWidth;
+    cssH = window.innerHeight;
+    canvas.width = cssW * dpr;
+    canvas.height = cssH * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
-  
+
   window.addEventListener("resize", resizeCanvas);
   resizeCanvas();
-  
-  // Create stars
+
   for (let i = 0; i < maxStars; i++) {
     stars.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      radius: Math.random() * 1.5,
-      opacity: Math.random(),
-      fadeDirection: Math.random() > 0.5 ? 1 : -1,
-      fadeSpeed: 0.005 + Math.random() * 0.01
+      x: Math.random() * cssW,
+      y: Math.random() * cssH,
+      radius: 0.4 + Math.random() * 1.2,
+      base: 0.25 + Math.random() * 0.35,   // சராசரி ஒளி
+      amp: 0.08 + Math.random() * 0.15,    // மினுமினுப்பு அளவு (மென்மை)
+      speed: 0.2 + Math.random() * 0.5,    // rad/s — மெதுவான சுழற்சி (8-30 வினாடி)
+      phase: Math.random() * Math.PI * 2
     });
   }
-  
-  function drawStars() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
+  const reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function drawStars(timeMs) {
+    const t = timeMs / 1000;
+    ctx.clearRect(0, 0, cssW, cssH);
     stars.forEach(star => {
+      const opacity = reducedMotion ? star.base : star.base + star.amp * Math.sin(star.speed * t + star.phase);
       ctx.beginPath();
       ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+      ctx.fillStyle = `rgba(255, 255, 255, ${opacity.toFixed(3)})`;
       ctx.fill();
-      
-      // Animate twinkling
-      star.opacity += star.fadeDirection * star.fadeSpeed;
-      if (star.opacity >= 0.9) {
-        star.fadeDirection = -1;
-      } else if (star.opacity <= 0.1) {
-        star.fadeDirection = 1;
-        // Relocate star occasionally to keep background dynamic
-        if (Math.random() > 0.8) {
-          star.x = Math.random() * canvas.width;
-          star.y = Math.random() * canvas.height;
-        }
-      }
     });
-    
-    requestAnimationFrame(drawStars);
+    if (!reducedMotion) requestAnimationFrame(drawStars);
   }
-  
-  drawStars();
+
+  requestAnimationFrame(drawStars);
 }
 
 // 2. LOCATION AUTOCOMPLETE SEARCH
