@@ -120,13 +120,6 @@ window.addEventListener("DOMContentLoaded", () => {
   
   // தமிழ் மட்டுமே
   changeLanguage("ta");
-  
-  // Check for saved Google Maps API key
-  const savedKey = localStorage.getItem("gmaps_api_key");
-  if (savedKey) {
-    document.getElementById("gmaps-api-key").value = savedKey;
-    loadGoogleMapsScript(savedKey);
-  }
 });
 
 // 1. STARRY BACKGROUND CANVAS
@@ -194,11 +187,6 @@ function initLocationSearch() {
   const suggestionsBox = document.getElementById("suggestions-box");
   
   searchInput.addEventListener("input", () => {
-    if (localStorage.getItem("gmaps_api_key")) {
-      // If Google Maps is loaded, let Google Autocomplete handle searches
-      return;
-    }
-    
     const query = searchInput.value.toLowerCase().trim();
     if (!query) {
       suggestionsBox.style.display = "none";
@@ -230,13 +218,10 @@ function initLocationSearch() {
 }
 
 function fetchNominatimSuggestions(query, localMatches) {
-  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`;
-  
-  fetch(url, {
-    headers: {
-      "Accept-Language": "en"
-    }
-  })
+  // OpenStreetMap Nominatim — இலவச, திறந்த மூல geocoding (தமிழ்ப் பெயர்கள் முன்னுரிமை)
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&accept-language=ta,en`;
+
+  fetch(url)
     .then(res => res.json())
     .then(data => {
       const osmMatches = data.map(item => ({
@@ -289,7 +274,7 @@ function renderSuggestions(matches) {
       if (city.tz !== undefined) {
         tzSelect.value = city.tz.toString();
       } else {
-        estimateTimezone(city.lat, city.lng);
+        fetchTimezoneFree(city.lat, city.lng);
       }
       
       suggestionsBox.style.display = "none";
@@ -989,95 +974,35 @@ function populatePlanetsTable(tbody, type) {
 }
 
 
-// 8. GOOGLE MAPS SETTINGS & AUTOCOMPLETE INTEGRATION
-function toggleSettings() {
-  const container = document.getElementById("settings-container");
-  if (container.style.display === "none") {
-    container.style.display = "block";
-  } else {
-    container.style.display = "none";
-  }
-}
+// 8. இலவச நேர மண்டலக் கண்டறிதல் (Open-Meteo — திறந்த மூல API, சாவி தேவையில்லை)
+function fetchTimezoneFree(lat, lng) {
+  // உடனடி மதிப்பீடு (இணைய அழைப்பு தோல்வியடைந்தாலும் ஒரு மதிப்பு இருக்கும்)
+  estimateTimezone(lat, lng);
 
-function saveApiKey() {
-  const key = document.getElementById("gmaps-api-key").value.trim();
-  if (!key) {
-    alert("சரியான கூகுள் மேப்ஸ் API சாவியை உள்ளிடவும்.");
-    return;
-  }
-  localStorage.setItem("gmaps_api_key", key);
-  alert("கூகுள் மேப்ஸ் API சாவி சேமிக்கப்பட்டது! அமைப்புகள் செயல்பட பக்கம் மீண்டும் ஏற்றப்படும்.");
-  location.reload();
-}
-
-function clearApiKey() {
-  localStorage.removeItem("gmaps_api_key");
-  document.getElementById("gmaps-api-key").value = "";
-  alert("கூகுள் மேப்ஸ் API சாவி அழிக்கப்பட்டது! இலவச இருப்பிடத் தேடல் செயல்பட பக்கம் மீண்டும் ஏற்றப்படும்.");
-  location.reload();
-}
-
-function loadGoogleMapsScript(apiKey) {
-  if (window.google && window.google.maps) {
-    initGoogleAutocomplete();
-    return;
-  }
-  
-  const script = document.createElement("script");
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleAutocomplete`;
-  script.async = true;
-  script.defer = true;
-  document.head.appendChild(script);
-}
-
-window.initGoogleAutocomplete = function() {
-  const input = document.getElementById("birth-location");
-  const autocomplete = new google.maps.places.Autocomplete(input, {
-    types: ["(cities)"]
-  });
-  
-  autocomplete.addListener("place_changed", () => {
-    const place = autocomplete.getPlace();
-    if (!place.geometry || !place.geometry.location) {
-      return;
-    }
-    
-    const lat = place.geometry.location.lat();
-    const lng = place.geometry.location.lng();
-    
-    document.getElementById("latitude").value = lat.toFixed(4);
-    document.getElementById("longitude").value = lng.toFixed(4);
-    
-    // Auto-fetch timezone from Google Maps Time Zone API
-    const apiKey = localStorage.getItem("gmaps_api_key");
-    if (apiKey) {
-      fetchGoogleTimezone(lat, lng, apiKey);
-    } else {
-      estimateTimezone(lat, lng);
-    }
-  });
-};
-
-function fetchGoogleTimezone(lat, lng, apiKey) {
-  const timestamp = Math.floor(Date.now() / 1000);
-  const url = `https://maps.googleapis.com/maps/api/timezone/json?location=${lat},${lng}&timestamp=${timestamp}&key=${apiKey}`;
-  
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&timezone=auto&forecast_days=1`;
   fetch(url)
     .then(res => res.json())
     .then(data => {
-      if (data.status === "OK") {
-        const totalOffsetHours = (data.rawOffset + data.dstOffset) / 3600;
-        document.getElementById("timezone").value = totalOffsetHours.toString();
-      } else {
-        console.warn("Google Timezone API status not OK:", data.status);
-        estimateTimezone(lat, lng);
+      if (typeof data.utc_offset_seconds === "number") {
+        const offsetHours = data.utc_offset_seconds / 3600;
+        const tzSelect = document.getElementById("timezone");
+        const exists = Array.from(tzSelect.options).some(o => parseFloat(o.value) === offsetHours);
+        if (!exists) {
+          const opt = document.createElement("option");
+          opt.value = offsetHours.toString();
+          const sign = offsetHours < 0 ? "-" : "+";
+          const abs = Math.abs(offsetHours);
+          const hh = Math.floor(abs), mm = Math.round((abs - hh) * 60);
+          opt.textContent = `UTC${sign}${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+          tzSelect.appendChild(opt);
+        }
+        tzSelect.value = offsetHours.toString();
       }
     })
     .catch(err => {
-      console.error("Google Timezone API error:", err);
-      estimateTimezone(lat, lng);
+      console.warn("Open-Meteo நேர மண்டல அழைப்புப் பிழை (மதிப்பீடு பயன்படுத்தப்படும்):", err);
     });
-};
+}
 
 // ==========================================
 // ADVANCED ASTROLOGY CALCULATIONS & READINGS
