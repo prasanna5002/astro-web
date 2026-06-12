@@ -2918,6 +2918,55 @@ function renderComprehensiveReport() {
   document.getElementById("report-health-desc").innerHTML = `
     <div class="lang-ta" style="font-family: var(--font-tamil); margin-bottom: 1rem;">${healthTa}</div>
   `;
+
+  // 5. சிறப்பு யோகங்கள் & தோஷங்கள்
+  const yogasContainer = document.getElementById("report-yogas");
+  if (yogasContainer) {
+    const yogas = detectYogas(birthData);
+    if (yogas.length === 0) {
+      yogasContainer.innerHTML = `<p class="reading-text" style="color: var(--text-secondary);">குறிப்பிடத்தக்க சிறப்பு யோக அமைப்புகள் எதுவும் இல்லை. கிரகங்களின் தனிப்பட்ட பலங்களே உங்கள் வாழ்வை வழிநடத்துகின்றன.</p>`;
+    } else {
+      yogasContainer.innerHTML = yogas.map(y => {
+        const isSubam = y.type === "subam";
+        const badgeStyle = isSubam
+          ? "background: rgba(85, 255, 85, 0.12); color: #55ff55; border: 1px solid rgba(85, 255, 85, 0.3);"
+          : "background: rgba(255, 165, 0, 0.12); color: #ffb347; border: 1px solid rgba(255, 165, 0, 0.3);";
+        return `
+          <div style="margin-bottom: 1.25rem; padding: 1rem; background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius-md);">
+            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+              <strong style="color: var(--primary-gold); font-size: 1rem;">${y.name}</strong>
+              <span style="${badgeStyle} padding: 0.1rem 0.5rem; border-radius: 4px; font-size: 0.72rem; font-weight: 700;">${isSubam ? "சுப யோகம்" : "பரிசீலனை தேவை"}</span>
+            </div>
+            <p class="reading-text" style="margin: 0;">${y.desc}</p>
+          </div>`;
+      }).join("");
+    }
+  }
+
+  // 6. நடப்புத் தசா பலன்
+  const dasaDesc = document.getElementById("report-dasa-desc");
+  if (dasaDesc) {
+    dasaDesc.innerHTML = `<div class="lang-ta" style="font-family: var(--font-tamil);">${getCurrentDasaReportTa(birthData, currentHoroscopeData.meta.birthDate.getTime())}</div>`;
+  }
+
+  // 7. தனம் & செல்வ நிலை
+  const wealthDesc = document.getElementById("report-wealth-desc");
+  if (wealthDesc) {
+    wealthDesc.innerHTML = `<div class="lang-ta" style="font-family: var(--font-tamil);">${getWealthReportTa(birthData)}</div>`;
+  }
+
+  // 8. வெளிநாடு & ஆன்மீகம்
+  const foreignDesc = document.getElementById("report-foreign-desc");
+  if (foreignDesc) {
+    foreignDesc.innerHTML = `<div class="lang-ta" style="font-family: var(--font-tamil);">${getForeignSpiritualReportTa(birthData)}</div>`;
+  }
+
+  // 9. சந்திர ராசிப் பொதுப் பலன்
+  const rasiDesc = document.getElementById("report-rasi-desc");
+  if (rasiDesc) {
+    const moonSign = Math.floor(birthData.moon / 30) % 12;
+    rasiDesc.innerHTML = `<div class="lang-ta" style="font-family: var(--font-tamil);"><strong>${RASIS[moonSign].nameTa} ராசி:</strong> ${RASI_PALAN_TA[moonSign]}</div>`;
+  }
 }
 window.renderComprehensiveReport = renderComprehensiveReport;
 
