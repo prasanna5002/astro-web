@@ -50,6 +50,18 @@ const VAKYA = (() => {
   function elongation(jd) { return norm(trueMoon(jd) - trueSun(jd)); }
   function yogaLon(jd) { return norm(trueMoon(jd) + trueSun(jd)); }
 
+  // திருக்கணித (drik) நிராயன சூரியப் பாகை — Lahiri ayanamsha.
+  // தமிழ் மாதம்/தேதி நிர்ணயத்திற்கு வாக்கிய மத்திம சூரியனை விட இது மிகத் துல்லியம்
+  // (வாக்கிய சூரியன் ~1° / சில மணிநேரம் பிறழ்வதால் சங்கராந்தி நாள் தவறக்கூடும்).
+  function drikSun(jd) {
+    if (typeof Astronomy === "undefined") return trueSun(jd); // CDN தோல்வியில் பின்னடைவு
+    const t = Astronomy.MakeTime(dateFromJd(jd));
+    const T = t.ut / 36525, T1900 = T + 1;
+    const ayanamsha = 22.460148 + 1.396042 * T1900 + 0.000308 * T1900 * T1900;
+    const ecl = Astronomy.Ecliptic(Astronomy.GeoVector(Astronomy.Body.Sun, t, true));
+    return norm(ecl.elon - ayanamsha);
+  }
+
   // fn(jd) முன்னோக்கி target பாகையை அடையும் நேரத்தை நியூட்டன் முறையில் காண்க
   function solveForward(fn, jd0, target, approxRate) {
     let jd = jd0;
@@ -161,23 +173,44 @@ const VAKYA = (() => {
     const karanaIdx = Math.floor(elong / 6) % 60;
     const karanaName = KARANA_FIXED[karanaIdx] || KARANA_MOVABLE[(karanaIdx - 1) % 7];
 
-    // தமிழ் மாதம் & தேதி (சங்கராந்தி அடிப்படையில்)
-    const monthIdx = Math.floor(sunLon / 30) % 12;
-    const monthStartLon = monthIdx * 30;
-    let sankJd = jdRise - norm(sunLon - monthStartLon) / 0.9856;
-    sankJd = solveForward(trueSun, sankJd - 2, monthStartLon, 0.9856);
-    // சங்கராந்தி நாளின் அஸ்தமனத்திற்கு முன் என்றால் அன்றே 1-ம் தேதி
-    const sankDate = dateFromJd(sankJd);
-    const sankLocal = new Date(sankDate.getTime() + tz * 3600000);
-    let sankDayStartUtc = Date.UTC(sankLocal.getUTCFullYear(), sankLocal.getUTCMonth(), sankLocal.getUTCDate());
-    let firstDayUtc = sankDayStartUtc;
-    try {
-      const st = getSunTimes(sankLocal.getUTCFullYear(), sankLocal.getUTCMonth() + 1, sankLocal.getUTCDate(), lat, lng, tz);
-      if (sankDate.getTime() > st.set.getTime()) {
-        firstDayUtc = sankDayStartUtc + 86400000; // அஸ்தமனத்திற்குப் பின் — மறுநாள் 1-ம் தேதி
-      }
-    } catch (e) { /* துருவப் பகுதிகள் */ }
+    // தமிழ் மாதம் & தேதி — திருக்கணித (drik) சூரியன் + தமிழ்நாட்டு அஸ்தமன விதி.
+    // ஒரு நாள் எந்த மாதத்தைச் சேர்ந்தது என்பது அந்த மாதத்தின் சங்கராந்தி
+    // (சூரியன் ராசி மாறும் தருணம்) எந்த நாளில் "1-ம் தேதி" ஆகிறது என்பதைப் பொறுத்தது:
+    //   சங்கராந்தி அஸ்தமனத்திற்கு முன் நிகழ்ந்தால் — அன்றே 1-ம் தேதி; பின் என்றால் மறுநாள்.
+    // உதயத்தில் சூரியன் இருக்கும் ராசியை மட்டும் நம்பினால் சங்கராந்தி நாள் தவறும்
+    // (உதயத்தில் பழைய ராசி, ஆனால் அந்நாள் அஸ்தமனத்திற்கு முன் புதிய ராசிக்கு மாறிவிடும்).
+    const sunLonDrik = drikSun(jdRise);
+    const s0 = Math.floor(sunLonDrik / 30) % 12; // உதயத்தில் சூரிய ராசி
+
+    // குறிப்பிட்ட ராசிக்குள் சூரியன் நுழையும் சங்கராந்தியின் "1-ம் தேதி" சிவில் நாள் (UTC)
+    function monthFirstDayUtc(startLon, approxJd) {
+      const sJd = solveForward(drikSun, approxJd - 2, ((startLon % 360) + 360) % 360, 0.9856);
+      const sDate = dateFromJd(sJd);
+      const sLocal = new Date(sDate.getTime() + tz * 3600000);
+      let firstUtc = Date.UTC(sLocal.getUTCFullYear(), sLocal.getUTCMonth(), sLocal.getUTCDate());
+      try {
+        const st = getSunTimes(sLocal.getUTCFullYear(), sLocal.getUTCMonth() + 1, sLocal.getUTCDate(), lat, lng, tz);
+        if (sDate.getTime() > st.set.getTime()) firstUtc += 86400000; // அஸ்தமனத்திற்குப் பின்
+      } catch (e) { /* துருவப் பகுதிகள் */ }
+      return firstUtc;
+    }
+
+    // தற்போதைய ராசி (s0) & அடுத்த ராசி (s0+1) ஆகியவற்றின் சங்கராந்தி நாட்கள்
+    const backDays = norm(sunLonDrik - s0 * 30) / 0.9856;       // s0-க்குள் நுழைந்தது (கடந்த காலம்)
+    const fwdDays = norm((s0 + 1) * 30 - sunLonDrik) / 0.9856;  // s0+1-க்குள் நுழைவது (எதிர் காலம்)
+    const firstDay0 = monthFirstDayUtc(s0 * 30, jdRise - backDays);
+    const firstDay1 = monthFirstDayUtc((s0 + 1) * 30, jdRise + fwdDays);
+
     const thisDayUtc = Date.UTC(year, month - 1, day);
+    let monthIdx, firstDayUtc;
+    if (thisDayUtc >= firstDay1) {
+      // சங்கராந்தி அஸ்தமனத்திற்கு முன் நிகழ்ந்த நாள் — அன்றே புதிய மாதம் 1-ம் தேதி
+      monthIdx = (s0 + 1) % 12;
+      firstDayUtc = firstDay1;
+    } else {
+      monthIdx = s0;
+      firstDayUtc = firstDay0;
+    }
     const tamilDay = Math.round((thisDayUtc - firstDayUtc) / 86400000) + 1;
 
     // தமிழ் ஆண்டு (60 ஆண்டு சுழற்சி)
