@@ -2533,3 +2533,75 @@ function ensureExtraBlocks4() {
     setTimeout(renderDailyOneLiners, 150);
   };
 })();
+
+// ================================================================
+// முக்கிய சுருக்கம் (Highlights) — ஒரே பார்வையில் முக்கிய அம்சங்கள்
+// ================================================================
+function renderHighlights() {
+  const el = document.getElementById("highlights-content");
+  if (!el || !currentHoroscopeData) return;
+  const bd = currentHoroscopeData.birth;
+  const meta = currentHoroscopeData.meta;
+  const lagnaSign = Math.floor(bd.lagna / 30) % 12;
+  const moonSign = Math.floor(bd.moon / 30) % 12;
+  const sunSign = Math.floor(bd.sun / 30) % 12;
+  const nak = getNakshatraInfo(bd.moon);
+
+  const baseYogas = (typeof detectYogas === "function") ? detectYogas(bd) : [];
+  const allYogas = baseYogas.concat(typeof detectMoreYogas === "function" ? detectMoreYogas(bd) : []);
+  const score = computeChartScore(bd, allYogas);
+  let grade, gradeColor;
+  if (score >= 80) { grade = "மிகச் சிறந்தது"; gradeColor = "#55ff55"; }
+  else if (score >= 65) { grade = "சிறந்தது"; gradeColor = "#a0e860"; }
+  else if (score >= 50) { grade = "நல்ல நடுத்தரம்"; gradeColor = "var(--primary-gold)"; }
+  else { grade = "பரிகாரத்தால் வலுப்படுத்தத்தக்கது"; gradeColor = "#ffb347"; }
+
+  const topYoga = allYogas.find(y => y.type === "subam");
+  const cur = computeCurrentDasaBhukti(bd.moon, meta.birthDate.getTime(), Date.now());
+  const fmt = ms => new Date(ms).toLocaleDateString("ta-IN", { year: "numeric", month: "short" });
+  const afflictions = (typeof detectMajorAfflictions === "function") ? detectMajorAfflictions(bd, currentHoroscopeData.transit) : [];
+  const mainProblem = afflictions[0];
+
+  let tamilDate = "";
+  try {
+    const p = VAKYA.computePanchangam(meta.year, meta.month, meta.day, meta.lat, meta.lng, meta.tz);
+    tamilDate = `${p.yearName} வருடம், ${p.tamilMonth} ${p.tamilDay}, ${p.weekday}`;
+  } catch (e) { /* புறக்கணி */ }
+
+  const name = (document.getElementById("user-name")?.value || "").trim();
+
+  const rows = [];
+  if (name) rows.push(["பெயர்", name]);
+  rows.push(["ராசி (சந்திரன்)", `${RASIS[moonSign].nameTa} — அதிபதி ${RASIS[moonSign].lordTa}`]);
+  rows.push(["நட்சத்திரம்", `${nak.nameTa} ${nak.pada}-ம் பாதம் — அதிபதி ${nak.lordTa}`]);
+  rows.push(["லக்னம்", `${RASIS[lagnaSign].nameTa} — அதிபதி ${RASIS[lagnaSign].lordTa}`]);
+  rows.push(["சூரிய ராசி", RASIS[sunSign].nameTa]);
+  if (tamilDate) rows.push(["பிறந்த தமிழ் தேதி", tamilDate]);
+  if (cur) rows.push(["நடப்பு தசா / புக்தி", `${planetNamesTa[cur.dasaLord]} தசை / ${planetNamesTa[cur.bhuktiLord]} புக்தி (${fmt(cur.bhuktiStart)} – ${fmt(cur.bhuktiEnd)})`]);
+  rows.push(["ஜாதக மதிப்பெண்", `<span style="color:${gradeColor};font-weight:800;">${score}/100</span> — ${grade}`]);
+  if (topYoga) rows.push(["முக்கிய சுப யோகம்", topYoga.name]);
+  if (mainProblem) rows.push(["கவனிக்க வேண்டிய அம்சம்", `${mainProblem.name} — ${mainProblem.impact}`]);
+
+  el.innerHTML = `
+    <ul class="highlights-list" style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:0.1rem;">
+      ${rows.map(r => `
+        <li style="display:flex;gap:0.65rem;align-items:flex-start;padding:0.55rem 0;border-bottom:1px dashed rgba(255,255,255,0.08);">
+          <span class="hl-bullet" style="color:var(--primary-gold);flex-shrink:0;line-height:1.5;">●</span>
+          <span class="reading-text" style="margin:0;"><strong style="color:var(--primary-gold);">${r[0]}:</strong> ${r[1]}</span>
+        </li>`).join("")}
+    </ul>
+    ${mainProblem ? `
+    <div style="margin-top:1rem;padding:0.85rem 1rem;border:1px solid rgba(85,255,85,0.3);border-radius:var(--radius-md);background:rgba(85,255,85,0.05);">
+      <strong style="color:#55ff55;">முக்கியப் பரிகாரம்:</strong>
+      <span class="reading-text" style="margin:0;">${mainProblem.remedy.split(";")[0]}.</span>
+    </div>` : ""}`;
+}
+
+// renderAllPredictions உடன் இணை (சங்கிலி 3)
+(function patchRenderAll3() {
+  const orig = window.renderAllPredictions;
+  window.renderAllPredictions = function () {
+    orig();
+    if (currentHoroscopeData) renderHighlights();
+  };
+})();

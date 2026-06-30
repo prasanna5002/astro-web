@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>சோதிடக் கணிப்பான் — இராசி, நட்சத்திரம், லக்னம் & வாக்கிய பஞ்சாங்கம்</title>
   <meta name="description" content="இராசி, நட்சத்திரம், லக்னம், நவாம்சம், தசா புக்தி, அஷ்டகவர்க்கம் மற்றும் வாக்கிய பஞ்சாங்கம் — முழுமையான தமிழ் சோதிட மென்பொருள்.">
-  <link rel="stylesheet" href="index.css?v=20260630">
+  <link rel="stylesheet" href="index.css?v=20260630-2">
   <!-- Astronomy Engine (vendored locally — works offline, no CDN dependency) -->
   <script src="astronomy.browser.min.js"></script>
 </head>
@@ -382,6 +382,22 @@
             <button type="button" class="main-tab" id="main-tab-ashtakavarga" onclick="switchMainTab('ashtakavarga')">அஷ்டகவர்க்கம் (Ashtakavarga)</button>
             <button type="button" class="main-tab" id="main-tab-aspects" onclick="switchMainTab('aspects')">கிரக சம்பந்தம் & பலன்கள் (Placements & Aspects)</button>
             <button type="button" class="main-tab" id="main-tab-houses" onclick="switchMainTab('houses')">பாவ பலன்கள் (House Readings)</button>
+          </div>
+
+          <!-- Panel: முக்கிய சுருக்கம் (Highlights) — appears first / before charts -->
+          <div id="panel-highlights" class="main-tab-panel active" style="margin-bottom: 4rem;">
+            <h2 class="section-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              முக்கிய சுருக்கம்<span class="en-text"> (Highlights)</span>
+            </h2>
+            <p class="detail-desc" style="margin-bottom: 1.5rem;">
+              ஜாதகத்தின் மிக முக்கியமான அம்சங்கள் ஒரே பார்வையில் — ராசி, நட்சத்திரம், லக்னம், நடப்பு தசை, ஒட்டுமொத்த மதிப்பீடு, முக்கிய யோகம் மற்றும் கவனிக்க வேண்டிய அம்சம்.
+            </p>
+            <div class="details-panel">
+              <div class="detail-block" id="highlights-content"></div>
+            </div>
           </div>
 
           <!-- Panel 0: வாக்கிய பஞ்சாங்கம் -->
@@ -940,8 +956,8 @@
     </main>
   </div>
 
-  <script src="app.js?v=20260630"></script>
-  <script src="panchangam.js?v=20260630"></script>
-  <script src="predictions.js?v=20260630"></script>
+  <script src="app.js?v=20260630-2"></script>
+  <script src="panchangam.js?v=20260630-2"></script>
+  <script src="predictions.js?v=20260630-2"></script>
 </body>
 </html>

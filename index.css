@@ -1309,6 +1309,68 @@ button.secondary-btn:hover {
     max-height: none !important;
     overflow: visible !important;
   }
+
+  /* 7. முன்கணிப்பு/கால-நிர்ணய அட்டவணைகள் — பக்க அகலத்திற்குள் பொருந்தச் செய் */
+  #panel-comprehensive-report table,
+  #panel-gochara table,
+  #panel-forecast-calendar table,
+  .details-panel table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 0.68rem !important;
+    page-break-inside: auto !important;
+  }
+  #panel-comprehensive-report th, #panel-comprehensive-report td,
+  #panel-gochara th, #panel-gochara td,
+  #panel-forecast-calendar th, #panel-forecast-calendar td,
+  .details-panel th, .details-panel td {
+    border: 1px solid #ccc !important;
+    padding: 3px 5px !important;
+    color: #000 !important;
+  }
+  #panel-comprehensive-report tr, #panel-forecast-calendar tr {
+    page-break-inside: avoid !important;
+  }
+  /* அட்டவணைகளைச் சுற்றும் கிடைமட்ட scroll-ஐ அச்சில் நீக்கு */
+  [style*="overflow-x"] { overflow: visible !important; }
+
+  /* 8. மூடிய <details> உள்ளடக்கம் அச்சில் தெரியட்டும் (JS-உடன் இரட்டை பாதுகாப்பு) */
+  details > *:not(summary) { display: block !important; }
+  details summary {
+    font-weight: 700 !important;
+    list-style: none !important;
+    color: #000 !important;
+  }
+  details summary::-webkit-details-marker { display: none !important; }
+
+  /* 9. படிவக் கட்டுப்பாடுகளை (porutham/muhurtham/panchangam உள்ளீடு) அச்சில் மறை */
+  #panel-porutham .form-row, #panel-muhurtham .form-row, #panel-panchangam .form-row,
+  #panel-porutham .secondary-btn, #panel-muhurtham .secondary-btn, #panel-panchangam .secondary-btn,
+  .gps-btn, #report-lang {
+    display: none !important;
+  }
+
+  /* 10. முன்கணிப்பு நாட்காட்டி நாள்-வாரி கட்டம் — அச்சு நட்பு */
+  #forecast-calendar [style*="grid-template-columns"] {
+    gap: 1px !important;
+  }
+  #forecast-calendar [style*="min-height:52px"],
+  #forecast-calendar [style*="min-height: 52px"] {
+    min-height: 40px !important;
+    border: 1px solid #ddd !important;
+  }
+
+  /* 11. முக்கிய சுருக்கம் (Highlights) — அச்சு நட்பு */
+  #panel-highlights .highlights-list li {
+    border-bottom: 1px dashed #ccc !important;
+    page-break-inside: avoid !important;
+  }
+  #panel-highlights .hl-bullet { color: #000 !important; }
+
+  /* 12. உள்ளமை வண்ண பின்னணி/எல்லைகளைத் தாள் சேமிப்பிற்காக மென்மையாக்கு */
+  #results-view * {
+    background-image: none !important;
+  }
 }
 
 /* ==========================================

@@ -3079,6 +3079,21 @@ function triggerPrint() {
 }
 window.triggerPrint = triggerPrint;
 
+// அச்சிடும்போது மூடிய <details> தொகுதிகளை (முன்கணிப்பு மாதங்கள், இரண்டாம் தோஷங்கள்)
+// விரித்துக் காட்டு — இல்லையேல் PDF-ல் அவை வெறுமையாக வரும். அச்சு முடிந்ததும் மீட்டமை.
+let _printOpenedDetails = [];
+window.addEventListener("beforeprint", () => {
+  _printOpenedDetails = [];
+  document.querySelectorAll("#results-view details:not([open])").forEach(d => {
+    _printOpenedDetails.push(d);
+    d.open = true;
+  });
+});
+window.addEventListener("afterprint", () => {
+  _printOpenedDetails.forEach(d => { d.open = false; });
+  _printOpenedDetails = [];
+});
+
 function populatePrintHeadersAndFooters() {
   const userName = document.getElementById("user-name").value.trim() || "N/A";
   const fatherName = document.getElementById("father-name").value.trim() || "N/A";
@@ -3408,6 +3423,9 @@ function exportToWord() {
   
   // Clone results-view to avoid modifying screen view
   const clone = resultsView.cloneNode(true);
+
+  // மூடிய <details> தொகுதிகளை விரித்து Word ஏற்றுமதியில் முழு உள்ளடக்கமும் வரச்செய்
+  clone.querySelectorAll("details").forEach(d => d.setAttribute("open", "open"));
   
   // Clean up screen-only buttons and selector in the exported clone
   const header = clone.querySelector(".results-header");
