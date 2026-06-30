@@ -113,14 +113,35 @@ let currentHoroscopeData = null;
 
 // Initialize application on load
 window.addEventListener("DOMContentLoaded", () => {
+  warnIfFileProtocol();
   initStarryBackground();
   initLocationSearch();
   setDefaultDateTime();
   loadAstrologerDetails();
-  
+
   // தமிழ் மட்டுமே
   changeLanguage("ta");
 });
+
+// file:// வழியாகத் திறந்தால் — இட தேடல்/நேர மண்டலம்/கணிப்பு வேலை செய்யாது.
+// தெளிவான அறிவுறுத்தலைக் காட்டு (குழப்பமான console பிழைக்குப் பதிலாக).
+function warnIfFileProtocol() {
+  if (window.location.protocol !== "file:") return;
+  const bar = document.createElement("div");
+  bar.setAttribute("role", "alert");
+  bar.style.cssText =
+    "position:fixed;top:0;left:0;right:0;z-index:9999;padding:0.85rem 1rem;" +
+    "background:#5a1020;color:#ffe;font-family:system-ui,sans-serif;font-size:0.9rem;" +
+    "line-height:1.5;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,0.5);";
+  bar.innerHTML =
+    'இந்தப் பக்கம் <b>file://</b> முறையில் திறக்கப்பட்டுள்ளது — இட தேடல், நேர மண்டலம், ' +
+    'ஜாதகக் கணிப்பு ஆகியவை வேலை செய்யாது. ஒரு சிறிய சேவையகம் மூலம் திறக்கவும்:<br>' +
+    '<code style="background:#000;padding:2px 6px;border-radius:4px;display:inline-block;margin-top:4px;">' +
+    'python3 -m http.server 8742</code> &nbsp;→&nbsp; ' +
+    '<a href="http://localhost:8742/" style="color:#ffd86b;">http://localhost:8742/</a>';
+  document.body.appendChild(bar);
+  document.body.style.paddingTop = "4.5rem";
+}
 
 // 1. STARRY BACKGROUND CANVAS — மிதமான மினுமினுப்பு (flicker தவிர்க்க)
 function initStarryBackground() {
