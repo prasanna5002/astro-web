@@ -326,6 +326,44 @@ function ensureParikaraBlocks() {
   else if (compPanel) compPanel.insertAdjacentHTML("beforeend", html);
 }
 
+// ----------------------------------------------------------
+// 6. நட்சத்திர விருட்சம் & வழிபடும் தெய்வம் (27)
+//    ஆதாரம்: AstroVed "27 நட்சத்திரங்களின் கடவுள், மரங்கள்" — நட்சத்திர வரிசையில் (அசுவினி … ரேவதி).
+//    (அதிதேவதை — அசுவினி தேவர்கள், எமன் … — ஏற்கனவே NAK_DEITIES-ல் உள்ளது; இது வழிபடும் தெய்வம்.)
+// ----------------------------------------------------------
+const NAK_TREES = ["எட்டி", "நெல்லி", "அத்தி", "நாவல்", "கருங்காலி", "செம்மரம்", "மூங்கில்", "அரசு", "புன்னை", "ஆலம்", "பலா", "அலரி", "வேலம்", "வில்வம்", "மருது", "விளா", "மகிழம்", "குட்டிப் பலா", "மா", "வஞ்சி", "சக்கைப் பலா", "எருக்கு", "வன்னி", "கடம்பு", "கருமருது", "வேம்பு", "இலுப்பை"];
+const NAK_WORSHIP_DEITY = ["விநாயகர்", "ரங்கநாதர்", "ஆஞ்சநேயர்", "சிவன்", "துர்க்கை", "பைரவர்", "ராகவேந்திரர்", "சிவன்", "பெருமாள்", "விநாயகர்", "ரங்கநாதர்", "ஆஞ்சநேயர்", "சிவன்", "துர்க்கை", "பைரவர்", "ராகவேந்திரர்", "சிவன்", "பெருமாள்", "விநாயகர்", "ரங்கநாதர்", "ஆஞ்சநேயர்", "சிவன்", "துர்க்கை", "பைரவர்", "ராகவேந்திரர்", "சிவன்", "பெருமாள்"];
+
+function renderNakTreeDeity(bd) {
+  const el = document.getElementById("report-nak-details");
+  if (!el || !bd) return;
+  const i = getNakshatraInfo(bd.moon).index;
+  const rows = NAKSHATRAS.map((n, k) => `<tr style="${k === i ? 'background:rgba(229,193,88,0.10);' : ''}border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:0.35rem 0.6rem;${k === i ? 'color:var(--primary-gold);font-weight:700;' : ''}">${n.nameTa}${k === i ? ' ★' : ''}</td>
+      <td style="padding:0.35rem 0.6rem;">${NAK_TREES[k]}</td>
+      <td style="padding:0.35rem 0.6rem;">${NAK_WORSHIP_DEITY[k]}</td>
+      <td style="padding:0.35rem 0.6rem;color:rgba(255,255,255,0.65);">${NAK_DEITIES[k]}</td>
+    </tr>`).join("");
+  el.insertAdjacentHTML("beforeend", `
+    <div class="detail-list" style="margin-top:1rem;">
+      <div class="detail-item"><span class="detail-key">நட்சத்திர விருட்சம்</span><span class="detail-val">${NAK_TREES[i]}</span></div>
+      <div class="detail-item"><span class="detail-key">வழிபடும் தெய்வம்</span><span class="detail-val">${NAK_WORSHIP_DEITY[i]}</span></div>
+    </div>
+    <p class="reading-meta" style="margin-top:0.6rem;">உங்கள் நட்சத்திர விருட்சமான <strong>${NAK_TREES[i]}</strong> மரத்தை நட்டு வளர்ப்பதும், ஜென்ம நட்சத்திர நாளில் அதற்கு நீர் ஊற்றி வலம் வருவதும், அம்மரத்தை வெட்டாமல் காப்பதும் நட்சத்திர தோஷ நிவர்த்திக்கும் ஆயுள் விருத்திக்கும் மரபான பரிகாரம். வழிபடும் தெய்வம் <strong>${NAK_WORSHIP_DEITY[i]}</strong>-ஐ ஜென்ம நட்சத்திர நாளில் வழிபடுவது சிறப்பு.</p>
+    <details style="margin-top:0.9rem;">
+      <summary style="cursor:pointer;color:var(--primary-gold);font-weight:700;font-family:var(--font-tamil);">27 நட்சத்திரங்களின் விருட்சம் & தெய்வம் — முழு அட்டவணை</summary>
+      <div style="overflow-x:auto;margin-top:0.6rem;"><table style="width:100%;border-collapse:collapse;font-family:var(--font-tamil);font-size:0.84rem;">
+        <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">நட்சத்திரம்</th>
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">விருட்சம்</th>
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">வழிபடும் தெய்வம்</th>
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">அதிதேவதை</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </details>`);
+}
+
 (function patchRenderAllParikaram() {
   const orig = window.renderAllPredictions;
   window.renderAllPredictions = function () {
@@ -334,5 +372,6 @@ function ensureParikaraBlocks() {
     ensureParikaraBlocks();
     renderGemRecommendation(currentHoroscopeData.birth);
     renderParikaraTemples(currentHoroscopeData.birth);
+    renderNakTreeDeity(currentHoroscopeData.birth);
   };
 })();
