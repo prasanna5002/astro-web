@@ -68,6 +68,11 @@ function navSaveScope(scope) {
 
 // ---------- 1. ஒட்டும் பிரிவு வழிசெலுத்தல் ----------
 let navLastActive = null;
+// கைபேசியில் மிதக்கும் பட்டி 3-4 வரிகள் ஆவதால், கீழ்நோக்கி உருளும்போது மறைத்து
+// மேல்நோக்கி உருளும்போது காட்டு (திரை இடத்தைச் சேமிக்க).
+let navHiddenByScroll = false;
+let navSuppressAutoHideUntil = 0;
+const NAV_MOBILE_QUERY = window.matchMedia("(max-width: 768px)");
 
 function buildSectionNav() {
   const view = document.getElementById("results-view");
@@ -116,6 +121,10 @@ function navScrollTo(id) {
   if (!el) return;
   const offset = (nav ? nav.offsetHeight : 0) + 14;
   const target = window.scrollY + el.getBoundingClientRect().top - offset;
+  // பிரிவுக்குத் தாவும்போது (கீழ்நோக்கிய பெரிய நகர்வு) தானியங்கி மறைவு தூண்டப்படக்
+  // கூடாது — பொத்தானை அழுத்தியதும் பட்டி மறைவது குழப்பமானது.
+  navSuppressAutoHideUntil = Date.now() + 800;
+  navHiddenByScroll = false;
   // இவ்வறிக்கை மிக நீளமானது — நெடுந்தூரத் தாவலை மென்மையாகச் செய்தால் பல வினாடிகள்
   // ஆகி, செயலிழந்தது போலத் தோன்றும். எனவே அருகில் மட்டும் மென்மை, தொலைவில் உடனடி.
   const smooth = Math.abs(target - window.scrollY) < 2500;
@@ -138,6 +147,7 @@ function ensureBackToTop() {
 
 function navSetupSpy(panels, nav, inline) {
   let raf = null;
+  let lastY = window.scrollY;
 
   const update = () => {
     raf = null;
@@ -146,7 +156,23 @@ function navSetupSpy(panels, nav, inline) {
     const view = document.getElementById("results-view");
     const shown = view && view.style.display !== "none";
     const passed = inline ? inline.getBoundingClientRect().bottom < 0 : window.scrollY > 400;
-    nav.classList.toggle("visible", !!(shown && passed));
+
+    // கைபேசி: கீழ்நோக்கி உருண்டால் மறை, மேல்நோக்கி உருண்டால் காட்டு
+    const y = window.scrollY;
+    const dy = y - lastY;
+    if (Date.now() < navSuppressAutoHideUntil) {
+      navHiddenByScroll = false;
+      lastY = y;
+    } else if (!NAV_MOBILE_QUERY.matches) {
+      navHiddenByScroll = false;   // மேசைக்கணினியில் எப்போதும் தெரியட்டும்
+      lastY = y;
+    } else if (Math.abs(dy) > 6) {  // சிறு அதிர்வுகளைப் புறக்கணி
+      if (dy > 0 && y > 300) navHiddenByScroll = true;
+      else if (dy < 0) navHiddenByScroll = false;
+      lastY = y;
+    }
+
+    nav.classList.toggle("visible", !!(shown && passed && !navHiddenByScroll));
 
     const offset = nav.offsetHeight + 40;
     let activeId = panels.length ? panels[0].id : null;
