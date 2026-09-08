@@ -114,6 +114,13 @@ let currentHoroscopeData = null;
 // Initialize application on load
 window.addEventListener("DOMContentLoaded", () => {
   warnIfFileProtocol();
+  // பிறந்த தேதி மாறினால் அந்த நாளுக்குரிய நேர மண்டலத்தை மீண்டும் எடு (DST நாடுகளுக்கு)
+  const dobInput = document.getElementById("birth-date");
+  if (dobInput) dobInput.addEventListener("change", () => {
+    const lat = parseFloat(document.getElementById("latitude").value);
+    const lng = parseFloat(document.getElementById("longitude").value);
+    if (isFinite(lat) && isFinite(lng)) fetchTimezoneFree(lat, lng);
+  });
   initStarryBackground();
   initLocationSearch();
   setDefaultDateTime();
@@ -494,6 +501,38 @@ function calculateAstrology(event) {
   }, 100);
 }
 
+// லக்னம் ராசி எல்லைக்கு அருகில் இருந்தால் (≤3°) எச்சரிக்கை — பிறந்த நேரம் சில
+// நிமிடங்கள் மாறினாலே ராசி மாறும். உண்மையான உள்ளூர் லக்ன வேகத்தை (°/நிமிடம்)
+// ±2 நிமிடக் கணிப்பால் அளந்து, எல்லையை அடையத் தேவையான நிமிடங்களைக் காட்டுகிறது.
+function renderLagnaCuspNote(data, birthDate) {
+  const el = document.getElementById("lagna-cusp-note");
+  if (!el) return;
+  el.style.display = "none";
+  el.textContent = "";
+  if (!currentHoroscopeData || !birthDate) return;
+  const deg = data.lagna % 30;
+  const THRESHOLD = 3;
+  const nearStart = deg < THRESHOLD, nearEnd = deg > 30 - THRESHOLD;
+  if (!nearStart && !nearEnd) return;
+  try {
+    const { lat, lng } = currentHoroscopeData.meta;
+    const epsRad = data.obliquity * Math.PI / 180;
+    const sidAsc = ms => ((calculateAscendant(Astronomy.MakeTime(new Date(ms)), lat, lng, epsRad) - data.ayanamsha) % 360 + 360) % 360;
+    const t = birthDate.getTime();
+    let diff = sidAsc(t + 120000) - sidAsc(t - 120000);
+    if (diff > 180) diff -= 360; if (diff < -180) diff += 360; // 0°/360° எல்லை சுழற்சி
+    let rate = diff / 4; // °/நிமிடம்
+    if (!isFinite(rate) || rate <= 0.02) rate = 0.25;
+    const sign = Math.floor(data.lagna / 30) % 12;
+    const altSign = nearStart ? (sign + 11) % 12 : (sign + 1) % 12;
+    const dist = nearStart ? deg : 30 - deg;
+    const mins = Math.max(1, Math.round(dist / rate));
+    const dir = nearStart ? "முன்" : "பின்";
+    el.innerHTML = `⚠ லக்னம் ராசி எல்லைக்கு மிக அருகில் (${dist.toFixed(1)}° மட்டுமே). பிறந்த நேரம் சுமார் ${mins} நிமிடம் ${dir} இருந்தால் லக்னம் <strong>${RASIS[altSign].nameTa}</strong> ஆகும் — சரியான பிறந்த நேரத்தை உறுதிசெய்யவும்.`;
+    el.style.display = "block";
+  } catch (e) { /* எச்சரிக்கை மட்டுமே — கணிப்பைத் தடுக்காது */ }
+}
+
 // Calculate Ascendant (Tropical)
 function calculateAscendant(astroTime, latVal, lngVal, epsRad) {
   const gastHours = Astronomy.SiderealTime(astroTime);
@@ -722,6 +761,7 @@ function updateUIFields(data, lngVal, birthDate) {
   document.getElementById("lagna-value-en").textContent = lagnaRasi.nameEn;
   document.getElementById("lagna-value-ta").textContent = lagnaRasi.nameTa;
   document.getElementById("lagna-degree").textContent = formatDMS(data.lagna % 30);
+  renderLagnaCuspNote(data, birthDate);
   
   const moonRasi = getRasiInfo(data.moon);
   document.getElementById("rasi-value-en").textContent = moonRasi.nameEn;
@@ -1037,9 +1077,19 @@ function fetchTimezoneFree(lat, lng) {
   // உடனடி மதிப்பீடு (இணைய அழைப்பு தோல்வியடைந்தாலும் ஒரு மதிப்பு இருக்கும்)
   estimateTimezone(lat, lng);
 
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&timezone=auto&forecast_days=1`;
-  fetch(url)
+  // பிறந்த தேதி தெரிந்தால் அந்த நாளின் UTC வேறுபாட்டை (DST உட்பட) archive API-யில்
+  // எடு — இன்றைய வேறுபாடு பிறந்த நாளில் வேறாக இருக்கலாம் (பிற நாடுகளில் லக்னம் ~15° பிறழும்).
+  const dob = (document.getElementById("birth-date") || {}).value;
+  const today = new Date().toISOString().slice(0, 10);
+  const useArchive = dob && dob < today;
+  const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&timezone=auto&forecast_days=1`;
+  const archiveUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lng}&start_date=${dob}&end_date=${dob}&timezone=auto&daily=temperature_2m_max`;
+  const primary = useArchive ? archiveUrl : forecastUrl;
+  fetch(primary)
     .then(res => res.json())
+    .then(data => (typeof data.utc_offset_seconds === "number" || primary === forecastUrl)
+      ? data
+      : fetch(forecastUrl).then(r => r.json()))
     .then(data => {
       if (typeof data.utc_offset_seconds === "number") {
         const offsetHours = data.utc_offset_seconds / 3600;

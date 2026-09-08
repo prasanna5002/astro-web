@@ -2574,7 +2574,9 @@ function renderHighlights() {
   if (name) rows.push(["பெயர்", name]);
   rows.push(["ராசி (சந்திரன்)", `${RASIS[moonSign].nameTa} — அதிபதி ${RASIS[moonSign].lordTa}`]);
   rows.push(["நட்சத்திரம்", `${nak.nameTa} ${nak.pada}-ம் பாதம் — அதிபதி ${nak.lordTa}`]);
-  rows.push(["லக்னம்", `${RASIS[lagnaSign].nameTa} — அதிபதி ${RASIS[lagnaSign].lordTa}`]);
+  const lagnaDeg = bd.lagna % 30;
+  const lagnaCusp = (lagnaDeg < 3 || lagnaDeg > 27) ? ' <span style="color:#ffb347;">— ராசி எல்லைக்கு அருகில்; பிறந்த நேரம் உறுதிசெய்யவும்</span>' : "";
+  rows.push(["லக்னம்", `${RASIS[lagnaSign].nameTa} ${lagnaDeg.toFixed(1)}° — அதிபதி ${RASIS[lagnaSign].lordTa}${lagnaCusp}`]);
   rows.push(["சூரிய ராசி", RASIS[sunSign].nameTa]);
   if (tamilDate) rows.push(["பிறந்த தமிழ் தேதி", tamilDate]);
   if (cur) rows.push(["நடப்பு தசா / புக்தி", `${planetNamesTa[cur.dasaLord]} தசை / ${planetNamesTa[cur.bhuktiLord]} புக்தி (${fmt(cur.bhuktiStart)} – ${fmt(cur.bhuktiEnd)})`]);
