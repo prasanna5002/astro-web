@@ -1860,9 +1860,19 @@ body.lang-select-en p.en-text {
 .scope-extra span { font-size: 0.83rem; color: var(--text-secondary); line-height: 1.5; }
 .scope-extra:has(input:not(:checked)) span { text-decoration: none; }
 
+/* குறுகிய திரைகளில் சிறிய சிப்புகள் — 12 பிரிவுகளும் குறைவான வரிகளில் பொருந்தும் */
+@media (max-width: 768px) {
+  .section-nav-btn { font-size: 0.76rem; padding: 0.3rem 0.6rem; }
+  .section-nav-inner { gap: 0.3rem; row-gap: 0.3rem; padding: 0 1rem; }
+  #section-nav { padding: 0.45rem 0; }
+}
+
 @media (max-width: 480px) {
-  .section-nav-btn { font-size: 0.8rem; padding: 0.35rem 0.7rem; }
-  #back-to-top { right: 0.85rem; bottom: 0.85rem; }
+  .section-nav-btn { font-size: 0.72rem; padding: 0.26rem 0.5rem; }
+  .section-nav-inner { gap: 0.25rem; row-gap: 0.25rem; padding: 0 0.75rem; }
+  #section-nav-inline { padding: 0.5rem 0.6rem; gap: 0.4rem; }
+  .section-nav-label { font-size: 0.74rem; padding-top: 0; }
+  #back-to-top { right: 0.85rem; bottom: 0.85rem; width: 40px; height: 40px; }
 }
 
 /* அச்சில்: வழிசெலுத்தல்/அமைப்பு மறை; தேர்வு நீக்கப்பட்ட பிரிவுகளை நீக்கு */
