@@ -1,0 +1,219 @@
+// ==========================================================
+// பரிகாரத் தொகுதி — ரத்தின பரிந்துரை & பரிகார கோவில்கள்
+// app.js, panchangam.js, predictions.js ஏற்றப்பட்ட பிறகு இயங்கும்
+// ==========================================================
+
+// ----------------------------------------------------------
+// 1. பரிகார கோவில் அட்டவணை (ஜோதிடர் நிரப்பத்தக்கது)
+//    விசை = அந்தப் பிரிவின் மதிப்பு (நட்சத்திரம்/திதி/கரணம்/கிரகம்/ராசி)
+//    மதிப்பு = கோவில் விவரம் (HTML அனுமதிக்கப்படும்)
+//    இங்கு இல்லாத மதிப்புகளுக்கு அறிக்கையில் "சேர்க்கப்பட வேண்டும்" எனக் காட்டப்படும்.
+// ----------------------------------------------------------
+const PARIKARA_TEMPLES = {
+  // பிறந்த நட்சத்திரம் (27)
+  nakshatra: {
+    "மிருகசீரிடம்": "மிருகவீரியம் : இந்த நட்சத்திரத்தில் பிறந்தவர்கள், ஆதிநாராயணப் பெருமாள் கோவிலுக்குச் சென்று வழிபட வேண்டும். தஞ்சாவூரில் இருந்து திருவாரூர் செல்லும் சாலையில் 50 கிலோமீட்டர் தூரத்தில் முக்குந்தனூர் என்ற ஊர் உள்ளது. இங்கிருந்து ஒரு கிலோமீட்டர் தொலைவில் இந்த ஆலயம் இருக்கிறது."
+  },
+  // பிறந்த திதி (பட்சம் நீங்கலாக: பிரதமை … சதுர்த்தசி, பௌர்ணமி, அமாவாசை)
+  tithi: {
+    "அமாவாசை": "ராமேஸ்வரம் ராமநாதசுவாமி"
+  },
+  // பிறந்த கரணம் (11)
+  karana: {
+    "நாகவம்": "நாகர்கோவில் நாகராஜகோவில்"
+  },
+  // யோகி கிரகம் (9) — இங்கு இல்லாதவற்றுக்கு நவகிரகத் தலம் காட்டப்படும்
+  yogi: {
+    jupiter: "அவிநாசி லிங்கேஸ்வரர்"
+  },
+  // அவயோகி கிரகம் (9) — இங்கு இல்லாதவற்றுக்கு நவகிரகத் தலம் காட்டப்படும்
+  avayogi: {
+    sun: "திருவையாறு ஐயாறப்பர்"
+  },
+  // வதை / வைநாசிக நட்சத்திரம் (ஜென்ம நட்சத்திரத்திலிருந்து 22-வது) (27)
+  vainasika: {
+    "உத்திரட்டாதி": "கோபிநாத சுவாமி ரெட்டியார் சத்திரம் திண்டுக்கல்"
+  },
+  // முடக்கு ராசி (12)
+  mudakku: {
+    "மிதுனம்": "காஞ்சிபுரம் அருகில் திருகாலிசமேடு கானரதிருநகர்<br>சத்தியவரதேஸ்வரர் இரண்டு சிவன் கோவில்"
+  },
+  // மாந்தி அமர்ந்த ராசி (12)
+  mandi: {
+    "மகரம்": "வணபத்திரகாளி தேக்கம்பட்டி"
+  }
+};
+
+// ----------------------------------------------------------
+// 2. ரத்தின அட்டவணை — கிரகம் வாரியாக
+// ----------------------------------------------------------
+const GEM_TABLE = {
+  sun:     { gem: "மாணிக்கம்",   sub: "கார்நெட் / சிவப்பு ஸ்பினல்",     finger: "மோதிர விரல்",   metal: "தங்கம் / செம்பு",      day: "ஞாயிற்றுக்கிழமை", weight: "3–5 காரட்" },
+  moon:    { gem: "முத்து",       sub: "மூன்ஸ்டோன்",                     finger: "சுண்டு விரல்",   metal: "வெள்ளி",               day: "திங்கட்கிழமை",     weight: "5–7 ரத்தி" },
+  mars:    { gem: "பவளம்",       sub: "சிவப்பு ஜாஸ்பர்",                finger: "மோதிர விரல்",   metal: "தங்கம் / செம்பு",      day: "செவ்வாய்க்கிழமை",  weight: "5–8 ரத்தி" },
+  mercury: { gem: "மரகதம்",      sub: "பெரிடாட் / பச்சை டூர்மலின்",     finger: "சுண்டு விரல்",   metal: "தங்கம்",               day: "புதன்கிழமை",       weight: "3–5 காரட்" },
+  jupiter: { gem: "புஷ்பராகம்",  sub: "சிட்ரின் / மஞ்சள் டோபாஸ்",       finger: "ஆள்காட்டி விரல்", metal: "தங்கம்",              day: "வியாழக்கிழமை",     weight: "3–5 காரட்" },
+  venus:   { gem: "வைரம்",       sub: "வெள்ளை சபையர் / ஜிர்கான்",       finger: "நடு விரல்",      metal: "வெள்ளி / பிளாட்டினம்", day: "வெள்ளிக்கிழமை",    weight: "0.5–1 காரட்" },
+  saturn:  { gem: "நீலம்",       sub: "அமெதிஸ்ட் / நீல டோபாஸ்",         finger: "நடு விரல்",      metal: "பஞ்சலோகம் / வெள்ளி",   day: "சனிக்கிழமை",       weight: "3–5 காரட்" },
+  rahu:    { gem: "கோமேதகம்",   sub: "ஆரஞ்சு ஜிர்கான்",                finger: "நடு விரல்",      metal: "பஞ்சலோகம் / வெள்ளி",   day: "சனிக்கிழமை (ராகு காலம்)", weight: "5–7 ரத்தி" },
+  ketu:    { gem: "வைடூரியம்",  sub: "புலிக்கண் (டைகர் ஐ)",             finger: "சுண்டு விரல்",   metal: "பஞ்சலோகம் / வெள்ளி",   day: "செவ்வாய்க்கிழமை",  weight: "3–5 காரட்" }
+};
+
+// ----------------------------------------------------------
+// 3. ரத்தின பரிந்துரை — லக்னம் + நடப்பு தசா அடிப்படையில்
+// ----------------------------------------------------------
+function renderGemRecommendation(bd) {
+  const el = document.getElementById("report-gems");
+  if (!el || !currentHoroscopeData) return;
+  const lagnaSign = Math.floor(bd.lagna / 30) % 12;
+  const hLord = h => SIGN_LORDS[(lagnaSign + h - 1) % 12];
+  const lagnaLord = hLord(1);
+  const lord5 = hLord(5), lord9 = hLord(9);
+  const good = new Set([lagnaLord, lord5, lord9, hLord(4), hLord(7), hLord(10)]);
+  const bad = new Set([hLord(6), hLord(8), hLord(12)]);
+  // லக்னாதிபதி எப்போதும் சுபர்; இரட்டை ஆட்சியில் 6/8/12 உடன் கலந்தாலும் லக்னாதிபதி தவிர்க்கப்படுவதில்லை
+  bad.delete(lagnaLord);
+
+  const cur = computeCurrentDasaBhukti(bd.moon, currentHoroscopeData.meta.birthDate.getTime(), Date.now());
+  const rows = [];
+  const add = (key, role, status, why) => rows.push({ key, role, status, why });
+
+  add(lagnaLord, "லக்னாதிபதி — ஆயுள் ரத்தினம்", "பரிந்துரை", `${RASIS[lagnaSign].nameTa} லக்னத்திற்கு ${planetNamesTa[lagnaLord]} ஆயுள்காரகர்; வாழ்நாள் முழுவதும் அணியலாம்.`);
+  if (lord5 !== lagnaLord) add(lord5, "5-ம் அதிபதி — புத்தி/பூர்வ புண்ணிய ரத்தினம்", bad.has(lord5) ? "எச்சரிக்கை" : "பரிந்துரை", bad.has(lord5) ? "6/8/12-ம் வீட்டையும் ஆள்வதால் ஜோதிடர் ஆலோசனையுடன் மட்டும்." : "கல்வி, புத்திரம், பூர்வ புண்ணியத்திற்கு உகந்தது.");
+  if (lord9 !== lagnaLord && lord9 !== lord5) add(lord9, "9-ம் அதிபதி — பாக்கிய ரத்தினம்", bad.has(lord9) ? "எச்சரிக்கை" : "பரிந்துரை", bad.has(lord9) ? "6/8/12-ம் வீட்டையும் ஆள்வதால் ஜோதிடர் ஆலோசனையுடன் மட்டும்." : "அதிர்ஷ்டம், தந்தை, தர்மம், தொலைதூர வாய்ப்புகளுக்கு உகந்தது.");
+
+  let dasaNote = "";
+  if (cur) {
+    const d = cur.dasaLord, b = cur.bhuktiLord;
+    const fmt = ms => new Date(ms).toLocaleDateString("ta-IN", { year: "numeric", month: "short" });
+    const isNode = d === "rahu" || d === "ketu";
+    if (isNode) {
+      const dispositor = SIGN_LORDS[Math.floor(bd[d] / 30) % 12];
+      add(d, `நடப்பு ${planetNamesTa[d]} தசை (${fmt(cur.dasaStart)} – ${fmt(cur.dasaEnd)})`, "ஆலோசனையுடன்",
+        `${planetNamesTa[d]} ரத்தினத்தை (${GEM_TABLE[d].gem}) ஜோதிடர் நேரடி ஆலோசனையுடன் மட்டும் அணியவும். ${planetNamesTa[d]} அமர்ந்த ${RASIS[Math.floor(bd[d] / 30) % 12].nameTa} ராசியின் அதிபதி ${planetNamesTa[dispositor]} — ${good.has(dispositor) && !bad.has(dispositor) ? `அவரது ரத்தினம் (${GEM_TABLE[dispositor].gem}) இத்தசையில் சிறந்த மாற்று.` : "லக்னாதிபதி ரத்தினமே இத்தசையின் பாதுகாப்பான தேர்வு."}`);
+    } else if (!rows.some(r => r.key === d)) {
+      const ok = good.has(d) && !bad.has(d);
+      add(d, `நடப்பு ${planetNamesTa[d]} தசை (${fmt(cur.dasaStart)} – ${fmt(cur.dasaEnd)})`, ok ? "பரிந்துரை (தசைக் காலம்)" : "தவிர்க்கவும்",
+        ok ? `தசாநாதன் ${planetNamesTa[d]} இந்த லக்னத்திற்குச் சுபர் — தசை முழுவதும் அணிந்தால் தசாப் பலன்கள் வலுக்கும்.` : `தசாநாதன் ${planetNamesTa[d]} இந்த லக்னத்திற்கு 6/8/12 அதிபதி (செயல்பாட்டுப் பாபர்) — இவரது ரத்தினம் தசையை வலுப்படுத்தி எதிர்பலன் தரும்; அணிய வேண்டாம். மாற்றாக லக்னாதிபதி ரத்தினத்தையே தொடரவும்.`);
+    } else {
+      const r = rows.find(r => r.key === d);
+      r.role += ` — நடப்பு தசாநாதனும் இவரே (${fmt(cur.dasaStart)} – ${fmt(cur.dasaEnd)})`;
+      r.why += " நடப்பு தசையிலும் இவரே ஆள்வதால் இப்போது அணிவது இரட்டிப்புப் பலன்.";
+    }
+    dasaNote = `நடப்பு புக்தி: ${planetNamesTa[b]} (${fmt(cur.bhuktiStart)} – ${fmt(cur.bhuktiEnd)}). புக்திநாதர் ரத்தினம் பொதுவாகத் தனியாக அணியப்படுவதில்லை; தசாநாதர்/லக்னாதிபதி ரத்தினத்துடன் ஜோதிடர் பரிந்துரைத்தால் மட்டும்.`;
+  }
+
+  const avoid = [...bad].filter(p => !rows.some(r => r.key === p && r.status.startsWith("பரிந்துரை")));
+
+  const badge = s => {
+    const c = s.startsWith("பரிந்துரை") ? "#55ff55" : s === "தவிர்க்கவும்" ? "#ff5555" : "#ffb347";
+    return `<span style="border:1px solid ${c};color:${c};padding:0.1rem 0.5rem;border-radius:4px;font-size:0.72rem;font-weight:700;white-space:nowrap;">${s}</span>`;
+  };
+  const th = t => `<th style="padding:0.45rem 0.6rem;text-align:left;color:var(--primary-gold);border-bottom:1px solid rgba(255,255,255,0.12);">${t}</th>`;
+  const td = t => `<td style="padding:0.45rem 0.6rem;border-bottom:1px solid rgba(255,255,255,0.05);vertical-align:top;">${t}</td>`;
+
+  el.innerHTML = `<div class="lang-ta">
+    <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-family:var(--font-tamil);font-size:0.86rem;">
+      <thead><tr>${th("கிரகம் / பங்கு")}${th("ரத்தினம்")}${th("உப ரத்தினம்")}${th("விரல்")}${th("உலோகம்")}${th("அணியும் நாள்")}${th("எடை")}${th("நிலை")}</tr></thead>
+      <tbody>${rows.map(r => { const g = GEM_TABLE[r.key]; return `<tr>
+        ${td(`<strong style="color:var(--primary-gold);">${planetNamesTa[r.key]}</strong><div class="reading-meta">${r.role}</div>`)}
+        ${td(`<strong>${g.gem}</strong>`)}${td(g.sub)}${td(g.finger)}${td(g.metal)}${td(g.day)}${td(g.weight)}${td(badge(r.status))}
+      </tr><tr><td colspan="8" style="padding:0 0.6rem 0.7rem;border-bottom:1px solid rgba(255,255,255,0.08);"><span class="reading-meta">${r.why}</span></td></tr>`; }).join("")}</tbody>
+    </table></div>
+    ${avoid.length ? `<p class="reading-text" style="margin-top:0.9rem;"><strong style="color:#ff5555;">தவிர்க்க வேண்டிய ரத்தினங்கள்:</strong> ${avoid.map(p => `${GEM_TABLE[p].gem} (${planetNamesTa[p]} — ${[6, 8, 12].filter(h => hLord(h) === p).join("/")}-ம் அதிபதி)`).join(", ")}. இக்கிரகங்களை வலுப்படுத்துவது இந்த லக்னத்திற்குப் பாதகம்.</p>` : ""}
+    ${dasaNote ? `<p class="reading-meta" style="margin-top:0.6rem;">${dasaNote}</p>` : ""}
+    <p class="reading-meta" style="margin-top:0.6rem;border-top:1px solid rgba(255,255,255,0.07);padding-top:0.6rem;">அணியும் முறை: சுக்லபட்சத்தில் அக்கிரகத்தின் கிழமையில், அதன் ஹோரையில், பால்/தேன்/கங்கை நீரில் சுத்தம் செய்து, அக்கிரக மந்திரத்தை 108 முறை ஜபித்து அணியவும். ரத்தினம் இயற்கையானதாகவும் விரிசல் இல்லாததாகவும் இருக்க வேண்டும். இப்பரிந்துரை பொது விதிகளின்படி — அணியும் முன் ஜோதிடர் நேரடிப் பரிசோதனை நலம்.</p>
+  </div>`;
+}
+
+// ----------------------------------------------------------
+// 4. பரிகார கோவில்கள் — நட்சத்திரம், திதி, கரணம், யோகி, அவயோகி,
+//    வதை/வைநாசிகம், முடக்கு ராசி, மாந்தி ராசி
+// ----------------------------------------------------------
+function renderParikaraTemples(bd) {
+  const el = document.getElementById("report-parikara-temples");
+  if (!el || !currentHoroscopeData) return;
+  const meta = currentHoroscopeData.meta;
+  const NAK = 360 / 27;
+  const lagnaSign = Math.floor(bd.lagna / 30) % 12;
+
+  // பஞ்சாங்க மதிப்புகள் (பிறந்த நாள்)
+  let tithiKey = "", karanaKey = "";
+  try {
+    const p = VAKYA.computePanchangam(meta.year, meta.month, meta.day, meta.lat, meta.lng, meta.tz);
+    tithiKey = p.tithi.replace(/^(வளர்பிறை|தேய்பிறை)\s+/, "");
+    karanaKey = p.karana;
+  } catch (e) { /* பஞ்சாங்கம் கிடைக்கவில்லை */ }
+
+  const janmaNakIdx = Math.floor(bd.moon / NAK) % 27;
+  const janmaNak = NAKSHATRAS[janmaNakIdx].nameTa;
+
+  // யோகி: (சூரியன் + சந்திரன் + 93°20') நட்சத்திர அதிபதி; அவயோகி: அதிலிருந்து 14-வது நட்சத்திர அதிபதி
+  const yogaPoint = (bd.sun + bd.moon + 93 + 20 / 60) % 360;
+  const yogiNakIdx = Math.floor(yogaPoint / NAK) % 27;
+  const yogi = NAKSHATRAS[yogiNakIdx].lordEn.toLowerCase();
+  const avayogiNakIdx = (yogiNakIdx + 14) % 27;
+  const avayogi = NAKSHATRAS[avayogiNakIdx].lordEn.toLowerCase();
+
+  // வதை / வைநாசிக நட்சத்திரம் — ஜென்ம நட்சத்திரத்திலிருந்து 22-வது
+  const vainasikaNak = NAKSHATRAS[(janmaNakIdx + 21) % 27].nameTa;
+
+  // முடக்கு ராசி — லக்னத்திற்கு 8-ம் ராசி (அஷ்டம ஸ்தானம்); மாந்தி ராசி — மாந்தி அமர்ந்த ராசி
+  const mudakkuRasi = RASIS[(lagnaSign + 7) % 12].nameTa;
+  const mandiRasi = RASIS[Math.floor(bd.mandi / 30) % 12].nameTa;
+
+  const missing = '<span class="reading-meta" style="color:#ffb347;">— இந்த மதிப்பிற்கான தலம் அட்டவணையில் (parikaram.js → PARIKARA_TEMPLES) சேர்க்கப்பட வேண்டும்</span>';
+  const planetTemple = (cat, key) => PARIKARA_TEMPLES[cat][key]
+    || (PLANET_REMEDIES[key] ? `${PLANET_REMEDIES[key].temple} <span class="reading-meta">(நவகிரகத் தலம்)</span>` : missing);
+  const lookup = (cat, key) => PARIKARA_TEMPLES[cat][key] || missing;
+
+  const rows = [
+    ["நட்சத்திர பரிகார கோவில்", janmaNak, lookup("nakshatra", janmaNak)],
+    ["திதி பரிகார கோவில்", tithiKey || "—", tithiKey ? lookup("tithi", tithiKey) : missing],
+    ["கரணம் பரிகார கோவில்", karanaKey || "—", karanaKey ? lookup("karana", karanaKey) : missing],
+    ["யோகி பரிகார கோவில்", planetNamesTa[yogi], planetTemple("yogi", yogi)],
+    ["அவயோகி பரிகார கோவில்", planetNamesTa[avayogi], planetTemple("avayogi", avayogi)],
+    ["வதை வைநாசிகம் பரிகார கோவில்", vainasikaNak, lookup("vainasika", vainasikaNak)],
+    ["முடக்கு ராசி பரிகார கோவில்கள்", mudakkuRasi, lookup("mudakku", mudakkuRasi)],
+    ["மாந்தி பரிகார கோவில்", mandiRasi, lookup("mandi", mandiRasi)]
+  ];
+
+  el.innerHTML = `<div class="lang-ta">
+    <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-family:var(--font-tamil);font-size:0.88rem;">
+      <tbody>${rows.map(r => `<tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+        <td style="padding:0.55rem 0.7rem;width:22%;color:rgba(255,255,255,0.75);vertical-align:top;">${r[0]}</td>
+        <td style="padding:0.55rem 0.7rem;width:14%;color:var(--primary-gold);font-weight:700;vertical-align:top;white-space:nowrap;">${r[1]}</td>
+        <td style="padding:0.55rem 0.7rem;font-weight:600;vertical-align:top;">${r[2]}</td>
+      </tr>`).join("")}</tbody>
+    </table></div>
+    <p class="reading-meta" style="margin-top:0.75rem;">யோகி/அவயோகி: சூரியன்+சந்திரன்+93°20′ புள்ளியின் நட்சத்திர அதிபதி யோகி; அதிலிருந்து 14-வது நட்சத்திர அதிபதி அவயோகி. வதை/வைநாசிகம்: ஜென்ம நட்சத்திரத்திலிருந்து 22-வது நட்சத்திரம். முடக்கு ராசி: லக்னத்திற்கு 8-ம் ராசி. மாந்தி: மாந்தி அமர்ந்த ராசி.</p>
+  </div>`;
+}
+
+// ----------------------------------------------------------
+// 5. தொகுதிகள் & இணைப்பு
+// ----------------------------------------------------------
+function ensureParikaraBlocks() {
+  const gemIcon = '<path d="M6 3h12l4 6-10 13L2 9z"/><path d="M2 9h20"/><path d="M10 3l2 6 2-6"/>';
+  const templeIcon = '<path d="M3 21h18"/><path d="M5 21V10l7-6 7 6v11"/><path d="M9 21v-6h6v6"/><path d="M12 4V2"/>';
+  const anchor = document.getElementById("report-remedies");
+  const compPanel = document.querySelector("#panel-comprehensive-report .details-panel");
+  if (document.getElementById("report-gems")) return;
+  const html = predBlock("report-gems", "ரத்தின பரிந்துரை (லக்னம் & நடப்பு தசா அடிப்படையில்)", gemIcon) +
+               predBlock("report-parikara-temples", "பரிகார கோவில்கள்", templeIcon);
+  // predBlock ஒரு .detail-block-ஐத் தரும்; பரிகாரங்கள் தொகுதிக்கு அடுத்து வை
+  const anchorBlock = anchor ? anchor.closest(".detail-block") : null;
+  if (anchorBlock) anchorBlock.insertAdjacentHTML("afterend", html);
+  else if (compPanel) compPanel.insertAdjacentHTML("beforeend", html);
+}
+
+(function patchRenderAllParikaram() {
+  const orig = window.renderAllPredictions;
+  window.renderAllPredictions = function () {
+    orig();
+    if (!currentHoroscopeData) return;
+    ensureParikaraBlocks();
+    renderGemRecommendation(currentHoroscopeData.birth);
+    renderParikaraTemples(currentHoroscopeData.birth);
+  };
+})();
