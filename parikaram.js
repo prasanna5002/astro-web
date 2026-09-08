@@ -474,6 +474,46 @@ function renderNakLucky(bd) {
     </details>`);
 }
 
+// ----------------------------------------------------------
+// 8. நட்சத்திர சின்னம், தமிழ் வடிவம் & யோனி விலங்கு (27)
+//    சின்னம்: Dheivegam "27 நட்சத்திர சின்னம்" (Wikipedia Nakshatra அட்டவணையுடன் ஒத்துப்போகிறது).
+//    தமிழ் வடிவம்: தேவநேயப் பாவாணர் தரும் 27 வடிவங்கள் (தமிழ் விக்கிப்பீடியா).
+//    யோனி விலங்கு: ஏற்கனவே உள்ள NAK_YONI (திருமணப் பொருத்தத்திலும் பயன்படுவது).
+// ----------------------------------------------------------
+const NAK_SYMBOL = ["குதிரைத் தலை", "மண் பாத்திரம், அடுப்பு, முக்கோண வடிவம்", "கத்தி, வாள், தீ ஜுவாலை", "தேர், சக்கரம்", "மான் தலை", "மனித தலை, வைரம்", "வில், அம்புக்கூடு", "தாமரை, அம்பு", "சர்ப்பம், அம்மிக்கல்", "வீடு, பல்லக்கு", "சங்கு, மெத்தை", "கட்டில் கால்கள், மெத்தை", "கைகள், உள்ளங்கைகள்", "முத்து, ரத்தினக் கற்கள்", "காற்று, தீபச்சுடர்", "முறம், தோரணம்", "குடை, தாமரை", "குடை, குண்டலம், ஈட்டி", "அங்குசம், சிங்கத்தின் வால்", "விசிறி, கட்டில் கால்கள்", "யானைத்தந்தம், கட்டில் கால்கள்", "மனித காது, அம்பு", "மிருதங்கம், உடுக்கை", "பூங்கொத்து, வட்ட வடிவம்", "வாள், இரு மனித முகங்கள்", "கட்டில் கால்கள், இரட்டையர்", "மீன், மத்தளம்"];
+const NAK_TAMIL_FORM = ["புரவி", "அடுப்பு", "ஆரல்", "சக்கரம்", "மான்தலை", "மூதிரை", "கழை", "காற்குளம்", "கட்செவி", "கொடுநுகம்", "கணை", "உத்தரம்", "கை", "அறுவை", "விளக்கு", "முறம்", "பனை", "துளங்கொளி", "குருகு", "உடைக்குளம்", "கடைக்குளம்", "முக்கோல்", "காக்கை", "செக்கு", "நாழி", "முரசு", "தோணி"];
+
+function renderNakSymbolAnimal(bd) {
+  const el = document.getElementById("report-nak-details");
+  if (!el || !bd) return;
+  const i = getNakshatraInfo(bd.moon).index;
+  const yoniTxt = k => `${NAK_YONI[k][0]} (${NAK_YONI[k][1] === "ஆ" ? "ஆண்" : "பெண்"})`;
+  const rows = NAKSHATRAS.map((n, k) => `<tr style="${k === i ? 'background:rgba(229,193,88,0.10);' : ''}border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:0.35rem 0.6rem;white-space:nowrap;${k === i ? 'color:var(--primary-gold);font-weight:700;' : ''}">${n.nameTa}${k === i ? ' ★' : ''}</td>
+      <td style="padding:0.35rem 0.6rem;">${NAK_SYMBOL[k]}</td>
+      <td style="padding:0.35rem 0.6rem;white-space:nowrap;">${NAK_TAMIL_FORM[k]}</td>
+      <td style="padding:0.35rem 0.6rem;white-space:nowrap;">${yoniTxt(k)}</td>
+    </tr>`).join("");
+  el.insertAdjacentHTML("beforeend", `
+    <div class="detail-list" style="margin-top:1rem;">
+      <div class="detail-item"><span class="detail-key">நட்சத்திர சின்னம்</span><span class="detail-val">${NAK_SYMBOL[i]}</span></div>
+      <div class="detail-item"><span class="detail-key">தமிழ் வடிவம் (பாவாணர்)</span><span class="detail-val">${NAK_TAMIL_FORM[i]}</span></div>
+      <div class="detail-item"><span class="detail-key">நட்சத்திர விலங்கு (யோனி)</span><span class="detail-val">${yoniTxt(i)}</span></div>
+    </div>
+    <details style="margin-top:0.8rem;">
+      <summary style="cursor:pointer;color:var(--primary-gold);font-weight:700;font-family:var(--font-tamil);">27 நட்சத்திரங்களின் சின்னம், தமிழ் வடிவம் & விலங்கு — முழு அட்டவணை</summary>
+      <div style="overflow-x:auto;margin-top:0.6rem;"><table style="width:100%;border-collapse:collapse;font-family:var(--font-tamil);font-size:0.84rem;">
+        <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">நட்சத்திரம்</th>
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">சின்னம்</th>
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">தமிழ் வடிவம்</th>
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">விலங்கு (யோனி)</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </details>`);
+}
+
 (function patchRenderAllParikaram() {
   const orig = window.renderAllPredictions;
   window.renderAllPredictions = function () {
@@ -484,5 +524,6 @@ function renderNakLucky(bd) {
     renderParikaraTemples(currentHoroscopeData.birth);
     renderNakTreeDeity(currentHoroscopeData.birth);
     renderNakLucky(currentHoroscopeData.birth);
+    renderNakSymbolAnimal(currentHoroscopeData.birth);
   };
 })();
