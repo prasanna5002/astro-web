@@ -74,8 +74,25 @@ function buildSectionNav() {
   const header = view && view.querySelector(".results-header");
   if (!view || !header) return;
 
-  // குறிப்பு: .glass-panel-இல் overflow:hidden உள்ளதாலும் .results-wrapper ஒரு grid
-  // ஆனதாலும் sticky உள்ளே வேலை செய்யாது — எனவே body-யில் fixed பட்டியாக இணைக்கிறோம்.
+  const panels = navGetPanels();
+  const btnHtml = panels.map(p =>
+    `<button type="button" class="section-nav-btn" data-target="${p.id}">${p.short}</button>`).join("");
+
+  // (அ) அறிக்கையின் தொடக்கத்திலேயே எப்போதும் தெரியும் பிரிவுப் பட்டி — உருளாமலேயே
+  //     எந்தப் பிரிவுக்கும் செல்லலாம் (மிதக்கும் பட்டி உருண்ட பிறகுதான் வரும்).
+  let inline = document.getElementById("section-nav-inline");
+  if (!inline) {
+    inline = document.createElement("nav");
+    inline.id = "section-nav-inline";
+    inline.className = "no-print";
+    inline.setAttribute("aria-label", "பிரிவுகள்");
+    header.insertAdjacentElement("afterend", inline);
+  }
+  inline.innerHTML = `<span class="section-nav-label">பிரிவுகள்</span><div class="section-nav-inner">${btnHtml}</div>`;
+
+  // (ஆ) உருளும்போது மேலே மிதக்கும் பட்டி.
+  //     .glass-panel-இல் overflow:hidden + backdrop-filter உள்ளதாலும் .results-wrapper
+  //     ஒரு grid ஆனதாலும் sticky/fixed உள்ளே வேலை செய்யாது — எனவே body-யில் இணைக்கிறோம்.
   let nav = document.getElementById("section-nav");
   if (!nav) {
     nav = document.createElement("nav");
@@ -84,17 +101,13 @@ function buildSectionNav() {
     nav.setAttribute("aria-label", "பிரிவு வழிசெலுத்தல்");
     document.body.appendChild(nav);
   }
+  nav.innerHTML = `<div class="section-nav-inner">${btnHtml}</div>`;
 
-  const panels = navGetPanels();
-  nav.innerHTML = `<div class="section-nav-inner">${panels.map(p =>
-    `<button type="button" class="section-nav-btn" data-target="${p.id}">${p.short}</button>`).join("")}</div>`;
-
-  nav.querySelectorAll(".section-nav-btn").forEach(btn => {
-    btn.addEventListener("click", () => navScrollTo(btn.dataset.target));
-  });
+  document.querySelectorAll("#section-nav .section-nav-btn, #section-nav-inline .section-nav-btn")
+    .forEach(btn => btn.addEventListener("click", () => navScrollTo(btn.dataset.target)));
 
   ensureBackToTop();
-  navSetupSpy(panels, nav);
+  navSetupSpy(panels, nav, inline);
 }
 
 function navScrollTo(id) {
@@ -123,18 +136,16 @@ function ensureBackToTop() {
   document.body.appendChild(b);
 }
 
-function navSetupSpy(panels, nav) {
+function navSetupSpy(panels, nav, inline) {
   let raf = null;
-  const inner = nav.querySelector(".section-nav-inner");
 
   const update = () => {
     raf = null;
 
-    // முடிவுகள் தெரியும்போது, தலைப்பைக் கடந்ததும் மட்டும் பட்டியைக் காட்டு
+    // உள்ளமைந்த பட்டி உருண்டு மறைந்த பிறகே மிதக்கும் பட்டியைக் காட்டு
     const view = document.getElementById("results-view");
     const shown = view && view.style.display !== "none";
-    const header = view && view.querySelector(".results-header");
-    const passed = header ? header.getBoundingClientRect().bottom < 0 : window.scrollY > 400;
+    const passed = inline ? inline.getBoundingClientRect().bottom < 0 : window.scrollY > 400;
     nav.classList.toggle("visible", !!(shown && passed));
 
     const offset = nav.offsetHeight + 40;
@@ -146,14 +157,17 @@ function navSetupSpy(panels, nav) {
 
     if (activeId !== navLastActive) {
       navLastActive = activeId;
-      nav.querySelectorAll(".section-nav-btn").forEach(btn => {
-        const on = btn.dataset.target === activeId;
-        btn.classList.toggle("active", on);
-        // செயலில் உள்ள பொத்தானைக் கிடைமட்டமாக மட்டும் நடுவில் கொண்டுவா (பக்கம் உருளாது)
-        if (on && inner && inner.scrollWidth > inner.clientWidth) {
-          inner.scrollTo({ left: btn.offsetLeft - inner.clientWidth / 2 + btn.offsetWidth / 2, behavior: "smooth" });
-        }
-      });
+      // இரு பட்டிகளிலும் செயல்நிலையை ஒத்திசை
+      document.querySelectorAll("#section-nav .section-nav-btn, #section-nav-inline .section-nav-btn")
+        .forEach(btn => btn.classList.toggle("active", btn.dataset.target === activeId));
+      // செயலில் உள்ள பொத்தானைக் கிடைமட்டமாக மட்டும் நடுவில் கொண்டுவா (பக்கம் உருளாது)
+      document.querySelectorAll("#section-nav .section-nav-inner, #section-nav-inline .section-nav-inner")
+        .forEach(box => {
+          const btn = box.querySelector(".section-nav-btn.active");
+          if (btn && box.scrollWidth > box.clientWidth) {
+            box.scrollTo({ left: btn.offsetLeft - box.clientWidth / 2 + btn.offsetWidth / 2, behavior: "smooth" });
+          }
+        });
     }
 
     const btt = document.getElementById("back-to-top");
@@ -169,7 +183,8 @@ function navSetupSpy(panels, nav) {
 
 // ---------- 2. அச்சு அமைப்பு (எந்தப் பிரிவுகள் PDF-இல்) ----------
 function buildPrintScope() {
-  const anchor = document.querySelector("#results-view .results-header");
+  const anchor = document.getElementById("section-nav-inline")
+    || document.querySelector("#results-view .results-header");
   if (!anchor) return;
 
   let box = document.getElementById("print-scope");

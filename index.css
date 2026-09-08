@@ -1697,6 +1697,10 @@ body.lang-select-en p.en-text {
 .section-nav-inner::-webkit-scrollbar { display: none; }
 .section-nav-btn {
   flex: 0 0 auto;
+  /* உலகளாவிய button{width:100%; display:flex; box-shadow} விதியை மீறு */
+  width: auto;
+  display: inline-block;
+  box-shadow: none;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.10);
   color: var(--text-secondary);
@@ -1708,12 +1712,43 @@ body.lang-select-en p.en-text {
   white-space: nowrap;
   transition: var(--transition-smooth);
 }
-.section-nav-btn:hover { color: var(--text-primary); border-color: var(--panel-border-hover); }
+.section-nav-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--panel-border-hover);
+  background: rgba(255, 255, 255, 0.04);
+  transform: none;
+  box-shadow: none;
+}
 .section-nav-btn.active {
   background: rgba(229, 193, 88, 0.14);
   border-color: var(--primary-gold);
   color: var(--primary-gold);
   font-weight: 700;
+}
+
+/* அறிக்கையின் தொடக்கத்தில் எப்போதும் தெரியும் பிரிவுப் பட்டி */
+#section-nav-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.02);
+}
+.section-nav-label {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary-gold);
+  font-family: var(--font-tamil), var(--font-astrology);
+}
+#section-nav-inline .section-nav-inner { padding: 0; margin: 0; max-width: none; }
+
+@media (max-width: 600px) {
+  #section-nav-inline { flex-direction: column; align-items: stretch; gap: 0.45rem; }
+  #section-nav-inline .section-nav-inner { width: 100%; }
 }
 
 #back-to-top {
@@ -1769,6 +1804,9 @@ body.lang-select-en p.en-text {
 .scope-body { padding: 0 1rem 1rem; }
 .scope-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.85rem; }
 .scope-preset {
+  width: auto;
+  display: inline-block;
+  box-shadow: none;
   background: transparent;
   border: 1px solid var(--panel-border);
   color: var(--text-secondary);
@@ -1779,7 +1817,13 @@ body.lang-select-en p.en-text {
   cursor: pointer;
   transition: var(--transition-smooth);
 }
-.scope-preset:hover { color: var(--primary-gold); border-color: var(--primary-gold); }
+.scope-preset:hover {
+  color: var(--primary-gold);
+  border-color: var(--primary-gold);
+  background: rgba(229, 193, 88, 0.06);
+  transform: none;
+  box-shadow: none;
+}
 .scope-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
