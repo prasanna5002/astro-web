@@ -1687,7 +1687,9 @@ body.lang-select-en p.en-text {
 .section-nav-inner {
   display: flex;
   gap: 0.4rem;
-  overflow-x: auto;
+  /* அனைத்துப் பிரிவுகளும் ஒரே பார்வையில் — மிதக்கும் பட்டியிலும் வரிமாற்றம் */
+  flex-wrap: wrap;
+  row-gap: 0.35rem;
   scrollbar-width: none;
   -ms-overflow-style: none;
   max-width: 1400px;
