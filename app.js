@@ -3164,7 +3164,14 @@ window.triggerPrint = triggerPrint;
 let _printOpenedDetails = [];
 window.addEventListener("beforeprint", () => {
   _printOpenedDetails = [];
-  document.querySelectorAll("#results-view details:not([open])").forEach(d => {
+  // 27-நட்சத்திர முழு அட்டவணைகள் (.ref-table) பொது விவரம் — ஜாதகருக்கு உரிய வரி
+  // ஒவ்வொரு அட்டவணைக்கும் மேலே ஏற்கனவே உள்ளது. எனவே அவை அச்சு அமைப்பில்
+  // தேர்ந்தெடுத்தால் மட்டுமே விரியும் (இல்லையேல் ~19 பக்கங்கள் வீணாகும்).
+  const withRefs = document.body.classList.contains("print-ref-tables");
+  const sel = withRefs
+    ? "#results-view details:not([open])"
+    : "#results-view details:not([open]):not(.ref-table)";
+  document.querySelectorAll(sel).forEach(d => {
     _printOpenedDetails.push(d);
     d.open = true;
   });

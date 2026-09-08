@@ -1662,3 +1662,157 @@ body.lang-select-en p.en-text {
 }
 
 
+
+/* ==========================================
+   பிரிவு வழிசெலுத்தல் & அச்சு அமைப்பு
+   (.print-skip விதி கோப்பின் இறுதியில் — .print-only-page-ஐ மேவ வேண்டும்)
+   ========================================== */
+#section-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  padding: 0.55rem 0;
+  background: rgba(5, 6, 15, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(229, 193, 88, 0.18);
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+}
+#section-nav.visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
+.section-nav-inner {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+.section-nav-inner::-webkit-scrollbar { display: none; }
+.section-nav-btn {
+  flex: 0 0 auto;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: var(--text-secondary);
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-family: var(--font-tamil), var(--font-astrology);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-smooth);
+}
+.section-nav-btn:hover { color: var(--text-primary); border-color: var(--panel-border-hover); }
+.section-nav-btn.active {
+  background: rgba(229, 193, 88, 0.14);
+  border-color: var(--primary-gold);
+  color: var(--primary-gold);
+  font-weight: 700;
+}
+
+#back-to-top {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 60;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--panel-border);
+  background: rgba(13, 16, 37, 0.92);
+  backdrop-filter: blur(8px);
+  color: var(--primary-gold);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: var(--transition-smooth);
+}
+#back-to-top.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+#back-to-top:hover { border-color: var(--primary-gold); box-shadow: var(--gold-glow); }
+
+#print-scope {
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.02);
+}
+#print-scope > summary {
+  cursor: pointer;
+  padding: 0.7rem 1rem;
+  color: var(--primary-gold);
+  font-weight: 700;
+  font-family: var(--font-tamil), var(--font-astrology);
+  font-size: 0.92rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+#scope-count {
+  margin-left: auto;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+}
+.scope-body { padding: 0 1rem 1rem; }
+.scope-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.85rem; }
+.scope-preset {
+  background: transparent;
+  border: 1px solid var(--panel-border);
+  color: var(--text-secondary);
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  font-family: var(--font-tamil), var(--font-astrology);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+.scope-preset:hover { color: var(--primary-gold); border-color: var(--primary-gold); }
+.scope-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 0.4rem 1rem;
+}
+.scope-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.87rem;
+  font-family: var(--font-tamil), var(--font-astrology);
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0.25rem 0;
+}
+.scope-item input { accent-color: var(--primary-gold); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+.scope-item:has(input:not(:checked)) span { color: var(--text-muted); text-decoration: line-through; }
+.scope-extra {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.10);
+  align-items: flex-start;
+}
+.scope-extra span { font-size: 0.83rem; color: var(--text-secondary); line-height: 1.5; }
+.scope-extra:has(input:not(:checked)) span { text-decoration: none; }
+
+@media (max-width: 480px) {
+  .section-nav-btn { font-size: 0.8rem; padding: 0.35rem 0.7rem; }
+  #back-to-top { right: 0.85rem; bottom: 0.85rem; }
+}
+
+/* அச்சில்: வழிசெலுத்தல்/அமைப்பு மறை; தேர்வு நீக்கப்பட்ட பிரிவுகளை நீக்கு */
+@media print {
+  #section-nav, #back-to-top, #print-scope, .no-print { display: none !important; }
+  .print-skip { display: none !important; }
+}

@@ -397,7 +397,7 @@ function renderNakTreeDeity(bd) {
     </div>
     <p class="reading-meta" style="margin-top:0.6rem;">காயத்ரி மந்திரத்தை தினமும் குறைந்தது 9 முறை (சிறப்பாக 108 முறை) ஜென்ம நட்சத்திர நாளிலும் ஜபிப்பது மரபு; தேவாரப் பாடலை ஜென்ம நட்சத்திர நாளில் ஆலயத்தில் பாடுவது சிறப்பு.</p>
     <p class="reading-meta" style="margin-top:0.6rem;">உங்கள் நட்சத்திர விருட்சமான <strong>${NAK_TREES[i]}</strong> மரத்தை நட்டு வளர்ப்பதும், ஜென்ம நட்சத்திர நாளில் அதற்கு நீர் ஊற்றி வலம் வருவதும், அம்மரத்தை வெட்டாமல் காப்பதும் நட்சத்திர தோஷ நிவர்த்திக்கும் ஆயுள் விருத்திக்கும் மரபான பரிகாரம். வழிபடும் தெய்வம் <strong>${NAK_WORSHIP_DEITY[i]}</strong>-ஐ ஜென்ம நட்சத்திர நாளில் வழிபடுவது சிறப்பு.</p>
-    <details style="margin-top:0.9rem;">
+    <details class="ref-table" style="margin-top:0.9rem;">
       <summary style="cursor:pointer;color:var(--primary-gold);font-weight:700;font-family:var(--font-tamil);">27 நட்சத்திரங்களின் விருட்சம் & தெய்வம் — முழு அட்டவணை</summary>
       <div style="overflow-x:auto;margin-top:0.6rem;"><table style="width:100%;border-collapse:collapse;font-family:var(--font-tamil);font-size:0.84rem;">
         <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
@@ -409,7 +409,7 @@ function renderNakTreeDeity(bd) {
         <tbody>${rows}</tbody>
       </table></div>
     </details>
-    <details style="margin-top:0.6rem;">
+    <details class="ref-table" style="margin-top:0.6rem;">
       <summary style="cursor:pointer;color:var(--primary-gold);font-weight:700;font-family:var(--font-tamil);">27 நட்சத்திர காயத்ரி மந்திரங்கள் & தேவாரப் பாடல்கள் — முழு அட்டவணை</summary>
       <div style="overflow-x:auto;margin-top:0.6rem;"><table style="width:100%;border-collapse:collapse;font-family:var(--font-tamil);font-size:0.82rem;">
         <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
@@ -459,7 +459,7 @@ function renderNakLucky(bd) {
       <div class="detail-item"><span class="detail-key">நட்சத்திர அதிர்ஷ்ட கிழமை</span><span class="detail-val">${LORD_LUCKY_DAY[lord]} (அதிபதி ${planetNamesTa[lord]})</span></div>
     </div>
     <p class="reading-meta" style="margin-top:0.6rem;">மேலே உள்ள ராசி அடிப்படை அதிர்ஷ்ட விவரங்களுடன் இணைத்துப் பார்க்கவும் — இரண்டிலும் பொதுவாக வரும் நிறம்/எண்/நாள் மிகவும் வலுவானது.</p>
-    <details style="margin-top:0.8rem;">
+    <details class="ref-table" style="margin-top:0.8rem;">
       <summary style="cursor:pointer;color:var(--primary-gold);font-weight:700;font-family:var(--font-tamil);">27 நட்சத்திரங்களின் அதிர்ஷ்ட நிறம், எண், கிழமை — முழு அட்டவணை</summary>
       <div style="overflow-x:auto;margin-top:0.6rem;"><table style="width:100%;border-collapse:collapse;font-family:var(--font-tamil);font-size:0.84rem;">
         <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
@@ -500,7 +500,7 @@ function renderNakSymbolAnimal(bd) {
       <div class="detail-item"><span class="detail-key">தமிழ் வடிவம் (பாவாணர்)</span><span class="detail-val">${NAK_TAMIL_FORM[i]}</span></div>
       <div class="detail-item"><span class="detail-key">நட்சத்திர விலங்கு (யோனி)</span><span class="detail-val">${yoniTxt(i)}</span></div>
     </div>
-    <details style="margin-top:0.8rem;">
+    <details class="ref-table" style="margin-top:0.8rem;">
       <summary style="cursor:pointer;color:var(--primary-gold);font-weight:700;font-family:var(--font-tamil);">27 நட்சத்திரங்களின் சின்னம், தமிழ் வடிவம் & விலங்கு — முழு அட்டவணை</summary>
       <div style="overflow-x:auto;margin-top:0.6rem;"><table style="width:100%;border-collapse:collapse;font-family:var(--font-tamil);font-size:0.84rem;">
         <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
@@ -556,7 +556,7 @@ function renderNakPalan(bd) {
   el.insertAdjacentHTML("beforeend", `
     <h4 style="color:var(--primary-gold);margin:1.1rem 0 0.5rem;font-family:var(--font-tamil);">${NAKSHATRAS[i].nameTa} நட்சத்திரப் பலன்</h4>
     <p class="reading-text" style="margin:0;">${NAK_PALAN_TA[i]}</p>
-    <details style="margin-top:0.8rem;">
+    <details class="ref-table" style="margin-top:0.8rem;">
       <summary style="cursor:pointer;color:var(--primary-gold);font-weight:700;font-family:var(--font-tamil);">27 நட்சத்திரங்களின் பலன்கள் — முழுப் பட்டியல்</summary>
       <div style="margin-top:0.6rem;display:flex;flex-direction:column;gap:0.6rem;">
         ${NAKSHATRAS.map((n, k) => `<div style="padding:0.6rem 0.8rem;border:1px solid rgba(255,255,255,0.07);border-radius:var(--radius-md);${k === i ? 'background:rgba(229,193,88,0.08);border-color:rgba(229,193,88,0.35);' : ''}">
@@ -621,7 +621,7 @@ function renderNakParikaram(bd) {
       ${row("அதிபதி கிரகத் தானம்", PLANET_REMEDIES[lord] ? `${PLANET_REMEDIES[lord].danam} (${PLANET_REMEDIES[lord].day})` : "")}
     </div>
     <p class="reading-meta" style="margin-top:0.6rem;">ஜென்ம நட்சத்திர நாள் மாதந்தோறும் ஒருமுறை வரும் — அன்று மேற்கண்ட பரிகாரங்களில் ஒன்றையாவது தொடர்ந்து செய்வதே மரபு. தானங்கள் தகுதியானவருக்கு நேரடியாக அளிக்கப்பட வேண்டும்.</p>
-    <details style="margin-top:0.8rem;">
+    <details class="ref-table" style="margin-top:0.8rem;">
       <summary style="cursor:pointer;color:var(--primary-gold);font-weight:700;font-family:var(--font-tamil);">27 நட்சத்திரங்களின் பரிகாரங்கள் — முழுப் பட்டியல்</summary>
       <div style="overflow-x:auto;margin-top:0.6rem;"><table style="width:100%;border-collapse:collapse;font-family:var(--font-tamil);font-size:0.84rem;">
         <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
