@@ -1371,6 +1371,46 @@ button.secondary-btn:hover {
   #results-view * {
     background-image: none !important;
   }
+
+  /* 13. பக்க ஓட்டம் — ஒவ்வொரு பேனலுக்கும் கட்டாயப் பக்க முறிவு வேண்டாம் (74 பக்க PDF-இல்
+     பாதி வெற்றுத் தாள்கள்); பெரிய பிரிவுகளுக்கு மட்டும் புதிய பக்கம் */
+  .main-tab-panel {
+    page-break-after: auto !important;
+    break-after: auto !important;
+    margin-bottom: 1.25rem !important;
+  }
+  #panel-charts, #panel-dasa, #panel-comprehensive-report, #panel-gochara, #panel-forecast-calendar {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+
+  /* 14. அனாதைத் தலைப்புகள் — தலைப்பு ஒரு பக்கத்திலும் உள்ளடக்கம் அடுத்த பக்கத்திலும் வராமல்:
+     பெரிய .detail-block-களைப் பிரிக்க அனுமதி; சிறு அலகுகள் மட்டும் பிரியாமல் */
+  .detail-block {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+  }
+  .detail-item, .info-card, .bhukti-item, .chart-container, .print-charts-container,
+  #results-view tr, #results-view li, .highlights-list li, .dasa-header {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .section-title, .detail-block h3, .detail-block h4, #results-view h4, .table-header, details summary {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+  .section-title + *, .detail-block h3 + *, .detail-block h4 + * {
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+  }
+
+  /* 15. முடிவுகள் இல்லாத பேனல்கள்/தொகுதிகள் அச்சில் வேண்டாம் */
+  #panel-panchangam .detail-block:has(#panchangam-custom-list:empty),
+  #panel-porutham:has(#porutham-results:empty):has(#compare-results:empty),
+  #panel-muhurtham:has(#muhurtham-results:empty),
+  #compare-block:has(#compare-results:empty) {
+    display: none !important;
+  }
 }
 
 /* ==========================================

@@ -128,7 +128,37 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // தமிழ் மட்டுமே
   changeLanguage("ta");
+
+  // URL அளவுருக்களால் முன்நிரப்பல் & தானியங்கிக் கணிப்பு — பகிரத்தக்க இணைப்புகள்
+  // உதா: ?dob=1984-07-12&tob=08:30&lat=13.0827&lng=80.2707&tz=5.5&place=Chennai&name=...&auto=1
+  prefillFromUrl();
 });
+
+function prefillFromUrl() {
+  const q = new URLSearchParams(window.location.search);
+  if (!q.get("dob") || !q.get("tob")) return;
+  const set = (id, v) => { const el = document.getElementById(id); if (el && v !== null && v !== "") el.value = v; };
+  set("birth-date", q.get("dob"));
+  set("birth-time", q.get("tob"));
+  set("latitude", q.get("lat"));
+  set("longitude", q.get("lng"));
+  set("birth-location", q.get("place"));
+  set("user-name", q.get("name"));
+  set("father-name", q.get("father"));
+  set("mother-name", q.get("mother"));
+  const tz = q.get("tz");
+  if (tz !== null) {
+    const sel = document.getElementById("timezone");
+    if (sel && !Array.from(sel.options).some(o => o.value === tz)) {
+      const opt = document.createElement("option"); opt.value = tz; opt.textContent = `UTC${parseFloat(tz) >= 0 ? "+" : ""}${tz}`; sel.appendChild(opt);
+    }
+    if (sel) sel.value = tz;
+  }
+  if (q.get("auto") === "1") {
+    const form = document.getElementById("calculator-form");
+    if (form) form.dispatchEvent(new Event("submit", { cancelable: true }));
+  }
+}
 
 // file:// வழியாகத் திறந்தால் — இட தேடல்/நேர மண்டலம்/கணிப்பு வேலை செய்யாது.
 // தெளிவான அறிவுறுத்தலைக் காட்டு (குழப்பமான console பிழைக்குப் பதிலாக).
@@ -3145,20 +3175,22 @@ window.addEventListener("afterprint", () => {
 });
 
 function populatePrintHeadersAndFooters() {
-  const userName = document.getElementById("user-name").value.trim() || "N/A";
-  const fatherName = document.getElementById("father-name").value.trim() || "N/A";
-  const motherName = document.getElementById("mother-name").value.trim() || "N/A";
-  
+  // விருப்பத் தகவல்கள் காலியாக இருந்தால் "N/A" அச்சிடாமல் அந்த உருப்படியையே விடு
+  const userName = document.getElementById("user-name").value.trim();
+  const fatherName = document.getElementById("father-name").value.trim();
+  const motherName = document.getElementById("mother-name").value.trim();
+
   const dob = document.getElementById("birth-date").value;
   const tob = document.getElementById("birth-time").value;
-  const pob = document.getElementById("birth-location").value || "N/A";
+  const pob = document.getElementById("birth-location").value.trim();
   const lat = document.getElementById("latitude").value;
   const lng = document.getElementById("longitude").value;
-  
-  const astroName = document.getElementById("astro-name").value.trim() || "N/A";
-  const astroCenter = document.getElementById("astro-center").value.trim() || "N/A";
-  const astroAddress = document.getElementById("astro-address").value.trim() || "N/A";
-  const astroContact = document.getElementById("astro-contact").value.trim() || "N/A";
+
+  const astroName = document.getElementById("astro-name").value.trim();
+  const astroCenter = document.getElementById("astro-center").value.trim();
+  const astroAddress = document.getElementById("astro-address").value.trim();
+  const astroContact = document.getElementById("astro-contact").value.trim();
+  const joinParts = parts => parts.filter(p => p[1]).map(p => `<strong>${p[0]}</strong> ${p[1]}`).join(" &nbsp;|&nbsp; ");
   
   const lang = "ta";
   const trans = {
@@ -3200,14 +3232,10 @@ function populatePrintHeadersAndFooters() {
       </div>
       <div class="print-header-line-view">
         <div class="print-header-line">
-          <strong>${trans.name[lang]}</strong> ${userName} &nbsp;|&nbsp; 
-          <strong>${trans.father[lang]}</strong> ${fatherName} &nbsp;|&nbsp; 
-          <strong>${trans.mother[lang]}</strong> ${motherName}
+          ${joinParts([[trans.name[lang], userName], [trans.father[lang], fatherName], [trans.mother[lang], motherName]])}
         </div>
         <div class="print-header-line">
-          <strong>${trans.date[lang]}</strong> ${dob} &nbsp;|&nbsp; 
-          <strong>${trans.time[lang]}</strong> ${tob} &nbsp;|&nbsp; 
-          <strong>${trans.pob[lang]}</strong> ${pob}
+          ${joinParts([[trans.date[lang], dob], [trans.time[lang], tob], [trans.pob[lang], pob]])}
         </div>
         <div class="print-header-line">
           <strong>${trans.lat[lang]}</strong> ${lat}° &nbsp;|&nbsp; 
@@ -3220,19 +3248,15 @@ function populatePrintHeadersAndFooters() {
     // Create new print footer
     const footer = document.createElement("div");
     footer.className = "print-footer";
+    const footerParts = joinParts([[trans.astro[lang], astroName], [trans.center[lang], astroCenter], [trans.address[lang], astroAddress], [trans.contact[lang], astroContact]]);
     footer.innerHTML = `
       <div class="print-footer-brand-line"></div>
-      <div class="print-footer-line-view">
-        <strong>${trans.astro[lang]}</strong> ${astroName} &nbsp;|&nbsp; 
-        <strong>${trans.center[lang]}</strong> ${astroCenter} &nbsp;|&nbsp; 
-        <strong>${trans.address[lang]}</strong> ${astroAddress} &nbsp;|&nbsp; 
-        <strong>${trans.contact[lang]}</strong> ${astroContact}
-      </div>
+      <div class="print-footer-line-view">${footerParts}</div>
     `;
-    
-    // Prepend header and append footer
+
+    // Prepend header; footer only when astrologer details exist
     panelEl.insertBefore(header, panelEl.firstChild);
-    panelEl.appendChild(footer);
+    if (footerParts) panelEl.appendChild(footer);
   });
   
   // Call helper to populate print cover (Page 1) and details (Page 2)
@@ -3243,28 +3267,45 @@ window.populatePrintHeadersAndFooters = populatePrintHeadersAndFooters;
 function populatePrintPages() {
   if (!currentHoroscopeData) return;
   
-  const userName = document.getElementById("user-name").value.trim() || "N/A";
-  const fatherName = document.getElementById("father-name").value.trim() || "N/A";
-  const motherName = document.getElementById("mother-name").value.trim() || "N/A";
+  const userName = document.getElementById("user-name").value.trim();
+  const fatherName = document.getElementById("father-name").value.trim();
+  const motherName = document.getElementById("mother-name").value.trim();
   const dob = document.getElementById("birth-date").value;
   const tob = document.getElementById("birth-time").value;
-  const pob = document.getElementById("birth-location").value || "N/A";
-  
-  const astroName = document.getElementById("astro-name").value.trim() || "N/A";
-  const astroCenter = document.getElementById("astro-center").value.trim() || "N/A";
-  const astroAddress = document.getElementById("astro-address").value.trim() || "N/A";
-  const astroContact = document.getElementById("astro-contact").value.trim() || "N/A";
-  
-  // Page 1: Cover
-  document.getElementById("print-cover-center").textContent = astroCenter;
-  document.getElementById("print-cover-name").textContent = astroName;
-  document.getElementById("print-cover-address").textContent = astroAddress;
-  document.getElementById("print-cover-contact").textContent = astroContact;
-  
+  const pob = document.getElementById("birth-location").value.trim();
+
+  const astroName = document.getElementById("astro-name").value.trim();
+  const astroCenter = document.getElementById("astro-center").value.trim();
+  const astroAddress = document.getElementById("astro-address").value.trim();
+  const astroContact = document.getElementById("astro-contact").value.trim();
+
+  // காலி மதிப்பு → "N/A" அச்சிடாமல் அந்த உறுப்பையே (அல்லது அட்டவணை வரிசையையே) மறை
+  const setOrHide = (id, val, hideRow) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const target = hideRow ? (el.closest("tr") || el) : el;
+    el.textContent = val;
+    target.style.display = val ? "" : "none";
+  };
+
+  // Page 1: Cover — ஜோதிடர் விவரம் இல்லையெனில் ஜாதகரின் பெயர்/பிறப்பு விவரமே அட்டைப் பக்கம்
+  const hasAstro = !!(astroName || astroCenter || astroAddress || astroContact);
+  if (hasAstro) {
+    setOrHide("print-cover-center", astroCenter);
+    setOrHide("print-cover-name", astroName);
+    setOrHide("print-cover-address", astroAddress);
+    setOrHide("print-cover-contact", astroContact);
+  } else {
+    setOrHide("print-cover-center", userName);
+    setOrHide("print-cover-name", [dob, tob].filter(Boolean).join("  ·  "));
+    setOrHide("print-cover-address", pob);
+    setOrHide("print-cover-contact", "");
+  }
+
   // Page 2: Details
-  document.getElementById("print-pd-name").textContent = userName;
-  document.getElementById("print-pd-father").textContent = fatherName;
-  document.getElementById("print-pd-mother").textContent = motherName;
+  setOrHide("print-pd-name", userName, true);
+  setOrHide("print-pd-father", fatherName, true);
+  setOrHide("print-pd-mother", motherName, true);
   document.getElementById("print-pd-dob").textContent = dob;
   document.getElementById("print-pd-tob").textContent = tob;
   document.getElementById("print-pd-pob").textContent = pob;
