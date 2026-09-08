@@ -567,6 +567,77 @@ function renderNakPalan(bd) {
     </details>`);
 }
 
+// ----------------------------------------------------------
+// 10. நட்சத்திரப் பரிகாரம் (27) — நட்சத்திர வாரியான தானம், விரதம், ஹோமம், சிறப்பு வழிபாடு
+//     ஆதாரம்: ASTROSIVA "நட்சத்திர தோஷம்: காரணங்கள் மற்றும் பரிகாரங்கள்" (சுருக்கமாகத் தரப்பட்டுள்ளது).
+//     பரிகாரத் தலம், விருட்சம், தெய்வம், காயத்ரி, கிழமை — ஏற்கனவே உள்ள அட்டவணைகளிலிருந்து இணைக்கப்படும்.
+// ----------------------------------------------------------
+const NAK_PARIKARAM = [
+  "சொர்ண (பொன்) தானம் & வஸ்திர தானம்; கூத்தனூர் சரஸ்வதி வழிபாடு",
+  "துர்க்கை / காளிக்கு அபிஷேக ஆராதனை; பொன் அல்லது எருமை தானம்",
+  "ஆடு தானம்; சூரிய ஆராதனை; திருவண்ணாமலை அக்னி லிங்க வழிபாடு",
+  "சாந்தி ஹோமம்; வெள்ளி தானம்",
+  "பௌர்ணமி விரதம் இருந்து சந்திர வழிபாடு; திங்களூர் தரிசனம்",
+  "பசு நெய் தானம்; விஷ்ணு ஸஹஸ்ரநாமம் & ருத்ர ஜபம்",
+  "சூரிய ஆராதனை; திருவண்ணாமலை சூரிய லிங்க ஆராதனை",
+  "பசு தானம்; தட்சிணாமூர்த்தி அல்லது ஹயக்ரீவர் வழிபாடு",
+  "கிரக சாந்தி, ஜபம், தானம்; ஆயுஷ் ஹோமம்; ஏழைகளுக்கு வஸ்திரம் & அன்னதானம்; சர்ப்பேஸ்வரர் வழிபாடு; ஸ்ரீகாளஹஸ்தி & திருநாகேஸ்வரம் தரிசனம்",
+  "ஈஸ்வரனுக்கு அபிஷேகம், கிரக சாந்தி, தானம்; பித்ரு தேவதை ஆராதனை; திருக்கடையூர், ஸ்ரீவாஞ்சியம், திருமீச்சூர், திருப்பைஞ்சீலி தரிசனம்",
+  "ருத்ராபிஷேகம்; ஆதித்ய ஹ்ருதயம் தினசரி பாராயணம்; சூரிய வழிபாடு",
+  "தைல (எண்ணெய்) தானம்; துவாதச ஆதித்யரில் அர்யமன் (சூரியன்) வழிபாடு",
+  "பொன் தானம்; ஆதித்ய ஹ்ருதயம் & தினசரி சூரிய வழிபாடு",
+  "வஸ்திர தானம்; இந்திர வழிபாடு; திருவண்ணாமலை கிழக்கு இந்திர லிங்க வழிபாடு",
+  "வாயு தேவ வழிபாடு; திருவண்ணாமலை வாயு லிங்கம்; திருமகள் (லட்சுமி) வழிபாடு",
+  "செந்நிற ஆடை & சிவப்பு மலர்களால் அபிஷேக ஆராதனை; துவரை & கோதுமை தானியத் தானம்",
+  "துவாதச ஆதித்யரில் மித்ரன் (சூரியன்) வழிபாடு; வருண வழிபாடு; திருவண்ணாமலை வருண லிங்கம்",
+  "பசு அல்லது தங்கப் பசு உருவம் தானம்; தேவேந்திர வழிபாடு (பெண்கள் வெண்மலர்களால் தியானித்து); திருவண்ணாமலை இந்திர லிங்க பூஜை",
+  "ருத்ராபிஷேகம்; பிரகஸ்பதி (குரு) வழிபாடு",
+  "நவகிரக & நட்சத்திர ஹோமம்; கங்கை நீரால் சிவாபிஷேகம்; திருவானைக்காவல் & திருவண்ணாமலை வருண லிங்கம்; பௌர்ணமி விரதம்; தேங்காய் & நெய் தீப வழிபாடு",
+  "விஸ்வேதேவர் & விநாயகர் வழிபாடு; புதுச்சேரி மணக்குள விநாயகர், திருப்பாதிரிப்புலியூர் பாதிரி விநாயகர், திருவண்ணாமலை ஆநிறை கணபதி தரிசனம்",
+  "ஏகாதசி விரதம் & பெருமாள் வழிபாடு; சிரவண விரதம் & திருவேங்கடமுடையான் ஆராதனை; லட்சுமி குபேர யந்திர பூஜை; திருவண்ணாமலை குபேர லிங்க அபிஷேகம்",
+  "அஷ்ட வசுக்கள் ஆராதனை; பித்ரு முக்தித் தலங்கள் — ராமேஸ்வரம், காசி, கயா, பூவலூர் (லால்குடி அருகில்) தரிசனம்",
+  "திருவானைக்காவல் அல்லது திருமீச்சூர் மேகநாதர் வழிபாடு; திருவண்ணாமலை வருண லிங்கம்",
+  "பொன் தானம்; லட்சுமி குபேர பூஜை; திருவண்ணாமலை கிரிவலப் பாதை குபேர லிங்கம்; சீர்காழி அருகில் லட்சுமிபுரீஸ்வரர் தரிசனம்",
+  "காமதேனு பூஜை; பட்டீஸ்வரம் தேனுபுரீஸ்வரர் தரிசனம்",
+  "பொன்னாலான பசு உருவம் & பசு நெய் தானம்; பூஷன் / சூரியனார் கோவில் சூரிய நாராயணர் வழிபாடு; திருவண்ணாமலை கிரிவலப் பாதை சூரிய லிங்கம்"
+];
+
+function renderNakParikaram(bd) {
+  const el = document.getElementById("report-nak-details");
+  if (!el || !bd) return;
+  const i = getNakshatraInfo(bd.moon).index;
+  const nak = NAKSHATRAS[i];
+  const lord = LORD_ORDER[i % 9];
+  const temple = (PARIKARA_TEMPLES.nakshatra[nak.nameTa] || "").replace(/<[^>]+>/g, "");
+  const row = (k, v) => `<div class="detail-item" style="flex-wrap:wrap;gap:0.3rem;"><span class="detail-key">${k}</span><span class="detail-val" style="font-weight:500;line-height:1.6;">${v}</span></div>`;
+  el.insertAdjacentHTML("beforeend", `
+    <h4 style="color:var(--primary-gold);margin:1.1rem 0 0.5rem;font-family:var(--font-tamil);">${nak.nameTa} நட்சத்திரப் பரிகாரம்</h4>
+    <div class="detail-list">
+      ${row("நட்சத்திர வாரியான பரிகாரம்", NAK_PARIKARAM[i])}
+      ${row("பரிகாரத் தலம்", temple)}
+      ${row("வழிபடும் தெய்வம் & நாள்", `${NAK_WORSHIP_DEITY[i]} — ஜென்ம நட்சத்திர நாளிலும் ${LORD_LUCKY_DAY[lord]}யிலும் வழிபாடு`)}
+      ${row("விருட்ச வழிபாடு", `${NAK_TREES[i]} மரத்தை நட்டு / ஜென்ம நட்சத்திர நாளில் நீர் ஊற்றி வலம் வருதல்`)}
+      ${row("ஜபம்", `நட்சத்திர காயத்ரி தினமும் 9 முறை (நட்சத்திர நாளில் 108); அதிபதி ${planetNamesTa[lord]} மந்திரம்: ${PLANET_REMEDIES[lord] ? PLANET_REMEDIES[lord].mantra : ""}`)}
+      ${row("அதிபதி கிரகத் தானம்", PLANET_REMEDIES[lord] ? `${PLANET_REMEDIES[lord].danam} (${PLANET_REMEDIES[lord].day})` : "")}
+    </div>
+    <p class="reading-meta" style="margin-top:0.6rem;">ஜென்ம நட்சத்திர நாள் மாதந்தோறும் ஒருமுறை வரும் — அன்று மேற்கண்ட பரிகாரங்களில் ஒன்றையாவது தொடர்ந்து செய்வதே மரபு. தானங்கள் தகுதியானவருக்கு நேரடியாக அளிக்கப்பட வேண்டும்.</p>
+    <details style="margin-top:0.8rem;">
+      <summary style="cursor:pointer;color:var(--primary-gold);font-weight:700;font-family:var(--font-tamil);">27 நட்சத்திரங்களின் பரிகாரங்கள் — முழுப் பட்டியல்</summary>
+      <div style="overflow-x:auto;margin-top:0.6rem;"><table style="width:100%;border-collapse:collapse;font-family:var(--font-tamil);font-size:0.84rem;">
+        <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">நட்சத்திரம்</th>
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">நட்சத்திர வாரியான பரிகாரம்</th>
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">பரிகாரத் தலம்</th>
+        </tr></thead>
+        <tbody>${NAKSHATRAS.map((n, k) => `<tr style="${k === i ? 'background:rgba(229,193,88,0.10);' : ''}border-bottom:1px solid rgba(255,255,255,0.05);">
+          <td style="padding:0.35rem 0.6rem;white-space:nowrap;vertical-align:top;${k === i ? 'color:var(--primary-gold);font-weight:700;' : ''}">${n.nameTa}${k === i ? ' ★' : ''}</td>
+          <td style="padding:0.35rem 0.6rem;line-height:1.55;">${NAK_PARIKARAM[k]}</td>
+          <td style="padding:0.35rem 0.6rem;line-height:1.55;color:rgba(255,255,255,0.75);">${(PARIKARA_TEMPLES.nakshatra[n.nameTa] || "").replace(/<[^>]+>/g, "").split(" — ")[0]}</td>
+        </tr>`).join("")}</tbody>
+      </table></div>
+    </details>`);
+}
+
 (function patchRenderAllParikaram() {
   const orig = window.renderAllPredictions;
   window.renderAllPredictions = function () {
@@ -579,5 +650,6 @@ function renderNakPalan(bd) {
     renderNakLucky(currentHoroscopeData.birth);
     renderNakSymbolAnimal(currentHoroscopeData.birth);
     renderNakPalan(currentHoroscopeData.birth);
+    renderNakParikaram(currentHoroscopeData.birth);
   };
 })();
