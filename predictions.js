@@ -605,7 +605,7 @@ function renderBirthPanchangSection() {
   if (!el || typeof VAKYA === "undefined" || !currentHoroscopeData) return;
   const meta = currentHoroscopeData.meta;
   try {
-    const p = VAKYA.computePanchangam(meta.year, meta.month, meta.day, meta.lat, meta.lng, meta.tz);
+    const p = VAKYA.computeBirthPanchangam(meta);
     const tithiName = p.tithi.replace("வளர்பிறை ", "").replace("தேய்பிறை ", "");
     const tithiPalan = TITHI_PALAN_TA[tithiName] || "";
     const weekIdx = ["ஞாயிற்றுக்கிழமை", "திங்கட்கிழமை", "செவ்வாய்க்கிழமை", "புதன்கிழமை", "வியாழக்கிழமை", "வெள்ளிக்கிழமை", "சனிக்கிழமை"].indexOf(p.weekday);
@@ -2564,7 +2564,7 @@ function renderHighlights() {
 
   let tamilDate = "";
   try {
-    const p = VAKYA.computePanchangam(meta.year, meta.month, meta.day, meta.lat, meta.lng, meta.tz);
+    const p = VAKYA.computeBirthPanchangam(meta);
     tamilDate = `${p.yearName} வருடம், ${p.tamilMonth} ${p.tamilDay}, ${p.weekday}`;
   } catch (e) { /* புறக்கணி */ }
 

@@ -253,7 +253,7 @@ function renderParikaraTemples(bd) {
   // பஞ்சாங்க மதிப்புகள் (பிறந்த நாள்)
   let tithiKey = "", karanaKey = "";
   try {
-    const p = VAKYA.computePanchangam(meta.year, meta.month, meta.day, meta.lat, meta.lng, meta.tz);
+    const p = VAKYA.computeBirthPanchangam(meta);
     tithiKey = p.tithi; // முழுப் பெயர் — வளர்பிறை/தேய்பிறைக்கு வெவ்வேறு தலங்கள்
     karanaKey = p.karana;
   } catch (e) { /* பஞ்சாங்கம் கிடைக்கவில்லை */ }

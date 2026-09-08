@@ -250,7 +250,38 @@ const VAKYA = (() => {
     };
   }
 
-  return { computePanchangam, trueSun, trueMoon, jdFromDate };
+  // ---------- இந்து தினம் (சூரிய உதயம் → அடுத்த உதயம்) ----------
+  // சூரிய உதயத்திற்கு முன் பிறந்தால் இந்து தினம் இன்னும் முந்தைய நாளே. எனவே கிழமை,
+  // திதி, நட்சத்திரம், தமிழ் தேதி, ராகு காலம் அனைத்தும் முந்தைய நாளின்படி கணிக்கப்பட
+  // வேண்டும் (நள்ளிரவு–உதயம் இடையே பிறந்த ~கால் பங்கு ஜாதகங்களைப் பாதிக்கும்).
+  function hinduDayFor(year, month, day, hourLocal, minuteLocal, lat, lng, tz) {
+    try {
+      const { rise } = getSunTimes(year, month, day, lat, lng, tz);
+      const riseLocal = new Date(rise.getTime() + tz * 3600000);
+      const riseHours = riseLocal.getUTCHours() + riseLocal.getUTCMinutes() / 60;
+      if ((hourLocal + minuteLocal / 60) < riseHours) {
+        const prev = new Date(Date.UTC(year, month - 1, day) - 86400000);
+        return { year: prev.getUTCFullYear(), month: prev.getUTCMonth() + 1, day: prev.getUTCDate(), shifted: true };
+      }
+    } catch (e) { /* உதயம் கணிக்க இயலவில்லை — சிவில் நாளையே பயன்படுத்து */ }
+    return { year, month, day, shifted: false };
+  }
+
+  // currentHoroscopeData.meta-லிருந்து நேரடியாக இந்து தினத்தைத் தீர்மானி
+  function birthHinduDay(meta) {
+    const local = new Date(meta.birthDate.getTime() + meta.tz * 3600000);
+    return hinduDayFor(meta.year, meta.month, meta.day, local.getUTCHours(), local.getUTCMinutes(), meta.lat, meta.lng, meta.tz);
+  }
+
+  // பிறந்த நாளுக்கான பஞ்சாங்கம் — இந்து தின சரிசெய்தலுடன்
+  function computeBirthPanchangam(meta) {
+    const d = birthHinduDay(meta);
+    const p = computePanchangam(d.year, d.month, d.day, meta.lat, meta.lng, meta.tz);
+    p.hinduDayShifted = d.shifted;
+    return p;
+  }
+
+  return { computePanchangam, computeBirthPanchangam, birthHinduDay, hinduDayFor, trueSun, trueMoon, jdFromDate };
 })();
 
 // ---------- UI வரைதல் ----------
@@ -282,8 +313,18 @@ function renderVakyaPanchangam() {
   if (!container || !currentHoroscopeData) return;
   const meta = currentHoroscopeData.meta;
   try {
-    const p = VAKYA.computePanchangam(meta.year, meta.month, meta.day, meta.lat, meta.lng, meta.tz);
-    container.innerHTML = buildPanchangamRows(p);
+    const p = VAKYA.computeBirthPanchangam(meta);
+    // உதயத்திற்கு முன் பிறப்பு — இந்து தினம் முந்தைய நாள் என்பதை ஜோதிடருக்குத் தெளிவாக்கு
+    const shiftNote = p.hinduDayShifted
+      ? `<div class="detail-item" style="border-top:1px dashed rgba(229,193,88,0.35);margin-top:0.35rem;padding-top:0.55rem;">
+           <span class="detail-val" style="color:#ffb347;font-weight:500;line-height:1.6;">
+             ⓘ பிறப்பு சூரிய உதயத்திற்கு முன் நிகழ்ந்ததால், இந்து தின முறைப்படி (உதயம் முதல் அடுத்த உதயம் வரை)
+             மேற்கண்ட கிழமை, திதி, நட்சத்திரம், தமிழ் தேதி, ராகு காலம் அனைத்தும் <strong>முந்தைய நாளின்</strong> படி
+             கணிக்கப்பட்டுள்ளன — இதுவே மரபு.
+           </span>
+         </div>`
+      : "";
+    container.innerHTML = buildPanchangamRows(p) + shiftNote;
   } catch (e) {
     console.error("பஞ்சாங்கக் கணிப்புப் பிழை:", e);
     container.innerHTML = `<div class="detail-item"><span class="detail-val">பஞ்சாங்கம் கணிக்க இயலவில்லை.</span></div>`;
