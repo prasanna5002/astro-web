@@ -426,6 +426,54 @@ function renderNakTreeDeity(bd) {
     </details>`);
 }
 
+// ----------------------------------------------------------
+// 7. நட்சத்திர வாரியான அதிர்ஷ்ட நிறம் / எண் / கிழமை
+//    நிறம்: AstroVed "27 நட்சத்திர மரங்கள் மற்றும் அதிர்ஷ்ட நிறம்" (நட்சத்திர வாரியாக).
+//    எண்: மாலைமலர் "உங்கள் நட்சத்திரத்திற்கான அதிர்ஷ்ட வழிபாட்டு முறைகள்" — நட்சத்திர அதிபதி
+//         (விம்சோத்தரி) வாரியாக 9 குழுக்கள். கிழமை: நட்சத்திர அதிபதியின் கிழமை (மரபு விதி).
+// ----------------------------------------------------------
+const NAK_LUCKY_COLOR = ["இளஞ்சிவப்பு", "இளஞ்சிவப்பு", "இளஞ்சிவப்பு", "வெண்மை", "வெண்மை", "பச்சை", "பச்சை / கிளிப்பச்சை", "வெண்மை", "வெண்மை", "இளஞ்சிவப்பு", "இளஞ்சிவப்பு", "வெளிர்பச்சை", "பச்சை", "பச்சை", "வெண்மை", "வெளிர்மஞ்சள்", "இளஞ்சிவப்பு", "நீலம்", "மஞ்சள்", "மஞ்சள்", "வெளிர்மஞ்சள்", "கருநீலம்", "கருநீலம்", "மஞ்சள்", "கருநீலம்", "மஞ்சள்", "வெளிர்மஞ்சள்"];
+// விம்சோத்தரி அதிபதி வரிசை: கேது, சுக்கிரன், சூரியன், சந்திரன், செவ்வாய், ராகு, குரு, சனி, புதன் (k % 9)
+const LORD_ORDER = ["ketu", "venus", "sun", "moon", "mars", "rahu", "jupiter", "saturn", "mercury"];
+const LORD_LUCKY_NUMBERS = { ketu: "5, 7, 9", venus: "3, 6, 8", sun: "1, 5, 7", moon: "2, 3, 9", mars: "3, 6, 9", rahu: "1, 4, 7", jupiter: "2, 3, 9", saturn: "5, 6, 8", mercury: "1, 5, 8" };
+const LORD_LUCKY_DAY = { sun: "ஞாயிற்றுக்கிழமை", moon: "திங்கட்கிழமை", mars: "செவ்வாய்க்கிழமை", mercury: "புதன்கிழமை", jupiter: "வியாழக்கிழமை", venus: "வெள்ளிக்கிழமை", saturn: "சனிக்கிழமை", rahu: "சனிக்கிழமை", ketu: "செவ்வாய்க்கிழமை" };
+
+function renderNakLucky(bd) {
+  const el = document.getElementById("report-lucky");
+  if (!el || !bd) return;
+  const i = getNakshatraInfo(bd.moon).index;
+  const lordOf = k => LORD_ORDER[k % 9];
+  const lord = lordOf(i);
+  const rows = NAKSHATRAS.map((n, k) => { const L = lordOf(k); return `<tr style="${k === i ? 'background:rgba(229,193,88,0.10);' : ''}border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:0.35rem 0.6rem;white-space:nowrap;${k === i ? 'color:var(--primary-gold);font-weight:700;' : ''}">${n.nameTa}${k === i ? ' ★' : ''}</td>
+      <td style="padding:0.35rem 0.6rem;">${NAK_LUCKY_COLOR[k]}</td>
+      <td style="padding:0.35rem 0.6rem;white-space:nowrap;">${LORD_LUCKY_NUMBERS[L]}</td>
+      <td style="padding:0.35rem 0.6rem;white-space:nowrap;">${LORD_LUCKY_DAY[L]}</td>
+      <td style="padding:0.35rem 0.6rem;color:rgba(255,255,255,0.65);">${planetNamesTa[L]}</td>
+    </tr>`; }).join("");
+  el.insertAdjacentHTML("beforeend", `
+    <h4 style="color:var(--primary-gold);margin:1.1rem 0 0.6rem;font-family:var(--font-tamil);">நட்சத்திர வாரியான அதிர்ஷ்டம் — ${NAKSHATRAS[i].nameTa}</h4>
+    <div class="detail-list">
+      <div class="detail-item"><span class="detail-key">நட்சத்திர அதிர்ஷ்ட நிறம்</span><span class="detail-val">${NAK_LUCKY_COLOR[i]}</span></div>
+      <div class="detail-item"><span class="detail-key">நட்சத்திர அதிர்ஷ்ட எண்கள்</span><span class="detail-val">${LORD_LUCKY_NUMBERS[lord]}</span></div>
+      <div class="detail-item"><span class="detail-key">நட்சத்திர அதிர்ஷ்ட கிழமை</span><span class="detail-val">${LORD_LUCKY_DAY[lord]} (அதிபதி ${planetNamesTa[lord]})</span></div>
+    </div>
+    <p class="reading-meta" style="margin-top:0.6rem;">மேலே உள்ள ராசி அடிப்படை அதிர்ஷ்ட விவரங்களுடன் இணைத்துப் பார்க்கவும் — இரண்டிலும் பொதுவாக வரும் நிறம்/எண்/நாள் மிகவும் வலுவானது.</p>
+    <details style="margin-top:0.8rem;">
+      <summary style="cursor:pointer;color:var(--primary-gold);font-weight:700;font-family:var(--font-tamil);">27 நட்சத்திரங்களின் அதிர்ஷ்ட நிறம், எண், கிழமை — முழு அட்டவணை</summary>
+      <div style="overflow-x:auto;margin-top:0.6rem;"><table style="width:100%;border-collapse:collapse;font-family:var(--font-tamil);font-size:0.84rem;">
+        <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.12);">
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">நட்சத்திரம்</th>
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">அதிர்ஷ்ட நிறம்</th>
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">அதிர்ஷ்ட எண்</th>
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">அதிர்ஷ்ட கிழமை</th>
+          <th style="padding:0.4rem 0.6rem;text-align:left;color:var(--primary-gold);">அதிபதி</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </details>`);
+}
+
 (function patchRenderAllParikaram() {
   const orig = window.renderAllPredictions;
   window.renderAllPredictions = function () {
@@ -435,5 +483,6 @@ function renderNakTreeDeity(bd) {
     renderGemRecommendation(currentHoroscopeData.birth);
     renderParikaraTemples(currentHoroscopeData.birth);
     renderNakTreeDeity(currentHoroscopeData.birth);
+    renderNakLucky(currentHoroscopeData.birth);
   };
 })();
