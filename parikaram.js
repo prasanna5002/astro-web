@@ -121,14 +121,11 @@ const PARIKARA_TEMPLES = {
     "கும்பம்": "திருவாதவூர் சிவன் (மதுரை மேலூர் அருகில்); திருப்பரங்குன்றம் முருகன்; கும்பகோணம் ஆதிகும்பேஸ்வரர்–மங்களாம்பிகை; அழகர்கோவில் கள்ளழகர்; வயலூர் முருகன்; தாண்டிக்குடி மலைமுருகன் (கொடைக்கானல்); வேதாரண்யம்; திருவாடானை; திருப்புல்லாணி"
   },
   // மாந்தி அமர்ந்த ராசி (12) — ராசி வாரியான பட்டியல் வெளியிடப்பட்ட ஆதாரங்களில் இல்லை;
-  // ஜோதிடர் தந்த மகரம் மட்டும். மற்ற ராசிகளுக்கு MANDI_GENERAL (பொதுத் தலங்கள்) + ராசி அதிபதி தலம் காட்டப்படும்.
+  // ஜோதிடர் தந்த மகரம் இங்கு; மற்ற 11 ராசிகள் fillDerivedTemples() விதி-வழியில் நிரப்பப்படும்.
   mandi: {
     "மகரம்": "வணபத்திரகாளி தேக்கம்பட்டி"
   }
 };
-
-// மாந்தி தோஷப் பொதுப் பரிகாரத் தலங்கள் (ஆதாரம்: மாலைமலர், Oneindia — "மாந்தி தோஷப் பரிகாரத் தலங்கள்")
-const MANDI_GENERAL = "திருநறையூர் ராமநாதசுவாமி–சித்திரகுப்தர் (கும்பகோணம் அருகே); திருவாலங்காடு (திருவள்ளூர்); விளங்குளம் (பட்டுக்கோட்டை அருகே)";
 
 // ----------------------------------------------------------
 // 2. ரத்தின அட்டவணை — கிரகம் வாரியாக
@@ -216,7 +213,37 @@ function renderGemRecommendation(bd) {
 // 4. பரிகார கோவில்கள் — நட்சத்திரம், திதி, கரணம், யோகி, அவயோகி,
 //    வதை/வைநாசிகம், முடக்கு ராசி, மாந்தி ராசி
 // ----------------------------------------------------------
+// ----------------------------------------------------------
+// விதி-வழி நிரப்பல் — வைநாசிகம் & மாந்தி
+// வெளியிடப்பட்ட தமிழ் ஆதாரங்களில் இவ்விரண்டுக்கும் தனிப் பட்டியல் இல்லை (Wayback, Scribd,
+// dheivegam, maalaimalar, astrosiva — அனைத்தும் தேடப்பட்டன). ஆதாரங்கள் கூறும் விதிகளின்படி
+// நிரப்பப்படுகிறது; ஜோதிடர் தந்த வரிகள் (உத்திரட்டாதி, மகரம்) அப்படியே முன்னுரிமை பெறும்.
+//  • மாந்தி: "மாந்தி எந்தக் கிரகத்தின் வீட்டில் உள்ளதோ அக்கிரகத்திற்குரிய பூஜை" (dheivegam/astrosiva)
+//    → ராசி அதிபதியின் நவகிரகத் தலம் + மாந்தி சந்நிதி உள்ள பொதுத் தலங்கள்.
+//  • வைநாசிகம்: வைநாசிக (22-வது) நட்சத்திரத்தின் நட்சத்திரப் பரிகாரத் தலம்.
+// ----------------------------------------------------------
+const MANDI_SANNIDHI = "திருநறையூர் ராமநாதசுவாமி (சனி–குளிகன்–மாந்தி தனிச் சந்நிதி); விளாங்குளம் அட்சயபுரீஸ்வரர் (பட்டுக்கோட்டை அருகே, மாந்தி சந்நிதி); திருவாலங்காடு; காஞ்சிபுரம் சித்திரகுப்தர் (ராகு காலத்தில் நெய் தீபம்)";
+let _derivedFilled = false;
+function fillDerivedTemples() {
+  if (_derivedFilled) return;
+  _derivedFilled = true;
+  try {
+    Object.keys(PARIKARA_TEMPLES.nakshatra).forEach(n => {
+      if (!PARIKARA_TEMPLES.vainasika[n])
+        PARIKARA_TEMPLES.vainasika[n] = `${PARIKARA_TEMPLES.nakshatra[n]} <span class="reading-meta">(வைநாசிக நட்சத்திரத் தலம் — விதி-வழி)</span>`;
+    });
+    RASIS.forEach((r, i) => {
+      if (!PARIKARA_TEMPLES.mandi[r.nameTa]) {
+        const lord = SIGN_LORDS[i];
+        const lt = PLANET_REMEDIES[lord] ? PLANET_REMEDIES[lord].temple : "";
+        PARIKARA_TEMPLES.mandi[r.nameTa] = `${lt} (${r.nameTa} அதிபதி ${planetNamesTa[lord]} தலம்); ${MANDI_SANNIDHI} <span class="reading-meta">(விதி-வழி)</span>`;
+      }
+    });
+  } catch (e) { /* app.js தரவுகள் இல்லாவிடில் புறக்கணி */ }
+}
+
 function renderParikaraTemples(bd) {
+  fillDerivedTemples();
   const el = document.getElementById("report-parikara-temples");
   if (!el || !currentHoroscopeData) return;
   const meta = currentHoroscopeData.meta;
@@ -251,11 +278,8 @@ function renderParikaraTemples(bd) {
   const mudakkuLon = ((146 + 40 / 60) - bd.sun + 720) % 360;
   const mudakkuNak = NAKSHATRAS[Math.floor(mudakkuLon / NAK) % 27].nameTa;
   const mudakkuRasi = RASIS[Math.floor(mudakkuLon / 30) % 12].nameTa;
-  // மாந்தி ராசி — மாந்தி அமர்ந்த ராசி; ராசி வாரியான தலம் இல்லாவிடில் பொதுத் தலங்கள் + ராசி அதிபதி தலம்
-  const mandiSign = Math.floor(bd.mandi / 30) % 12;
-  const mandiRasi = RASIS[mandiSign].nameTa;
-  const mandiLord = SIGN_LORDS[mandiSign];
-  const mandiFallback = `${MANDI_GENERAL}; மாந்தி அமர்ந்த ${mandiRasi} அதிபதி ${planetNamesTa[mandiLord]} தலம் — ${PLANET_REMEDIES[mandiLord] ? PLANET_REMEDIES[mandiLord].temple : ""} <span class="reading-meta">(பொதுப் பரிகாரம்)</span>`;
+  // மாந்தி ராசி — மாந்தி அமர்ந்த ராசி (அட்டவணை fillDerivedTemples-ஆல் 12 ராசிக்கும் நிரப்பப்பட்டது)
+  const mandiRasi = RASIS[Math.floor(bd.mandi / 30) % 12].nameTa;
 
   const missing = '<span class="reading-meta" style="color:#ffb347;">— இந்த மதிப்பிற்கான தலம் அட்டவணையில் (parikaram.js → PARIKARA_TEMPLES) சேர்க்கப்பட வேண்டும்</span>';
   const planetTemple = (cat, key) => PARIKARA_TEMPLES[cat][key]
@@ -270,7 +294,7 @@ function renderParikaraTemples(bd) {
     ["அவயோகி பரிகார கோவில்", planetNamesTa[avayogi], planetTemple("avayogi", avayogi)],
     ["வதை வைநாசிகம் பரிகார கோவில்", vainasikaNak, lookup("vainasika", vainasikaNak)],
     ["முடக்கு ராசி பரிகார கோவில்கள்", `${mudakkuRasi}<div class="reading-meta" style="font-weight:400;">முடக்கு நட்சத்திரம்: ${mudakkuNak}</div>`, lookup("mudakku", mudakkuRasi)],
-    ["மாந்தி பரிகார கோவில்", mandiRasi, PARIKARA_TEMPLES.mandi[mandiRasi] || mandiFallback]
+    ["மாந்தி பரிகார கோவில்", mandiRasi, lookup("mandi", mandiRasi)]
   ];
 
   el.innerHTML = `<div class="lang-ta">
